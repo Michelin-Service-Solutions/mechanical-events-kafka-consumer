@@ -1,5 +1,5 @@
 import { ListenerNextAvailablePriority } from "@michelin/cdk-listener-next-priority";
-import { Duration, Fn } from "aws-cdk-lib";
+import { Duration, Fn, RemovalPolicy } from "aws-cdk-lib";
 import { ISecurityGroup, ISubnet, IVpc, Peer, Port } from "aws-cdk-lib/aws-ec2";
 
 import { Cluster, Compatibility, ContainerImage, FargateService, ICluster, LogDriver, NetworkMode, TaskDefinition, Secret } from "aws-cdk-lib/aws-ecs";
@@ -176,7 +176,7 @@ const retryQueueARN = Fn.importValue(`${appName}-retryQueue-${envName}-ARN`);
       environment: ecsEnvironment,
       secrets:ecsSecrets,
       // store the logs in cloudwatch
-      logging: LogDriver.awsLogs({ streamPrefix: `${appName}-api-logs`, logGroup: new LogGroup(scope, 'Log Group',{logGroupName: `${appName}-${envName}-logs`,retention:RetentionDays.ONE_MONTH})}),
+      logging: LogDriver.awsLogs({ streamPrefix: `${appName}-api-logs`, logGroup: new LogGroup(scope, 'Log Group',{logGroupName: `${appName}-${envName}-logs`,retention:RetentionDays.ONE_MONTH,removalPolicy:RemovalPolicy.DESTROY})}),
       portMappings: [
         {
           containerPort: 3030,
