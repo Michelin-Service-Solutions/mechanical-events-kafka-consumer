@@ -1,0 +1,44 @@
+// For more information about this file see https://dove.feathersjs.com/guides/cli/typescript.html
+import { HookContext as FeathersHookContext, NextFunction } from '@feathersjs/feathers'
+import { Application as FeathersApplication } from '@feathersjs/express'
+import { ApplicationConfiguration } from './configuration'
+
+export { NextFunction }
+
+// The types for app.get(name) and app.set(name)
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Configuration extends ApplicationConfiguration { }
+
+// A mapping of service names to types. Will be extended in service files.
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ServiceTypes { }
+
+// The application instance type that will be used everywhere else
+export type Application = FeathersApplication<ServiceTypes, Configuration>
+
+// The context for hook functions - can be typed with a service class
+export type HookContext<S = any> = FeathersHookContext<Application, S>
+
+export interface KafkaCredentials {
+  username: string;
+  password: string;
+}
+
+export interface FleetContact {
+  email?: string;
+  email_address?: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
+  contact_type?: string | string[];
+  contact_types?: string[];
+  notification_preferences?: string[];
+  notification_subscription?: Array<{ type?: string; event?: string; method?: string[]; cc_emails?: string[] }>;
+  is_deleted?: boolean;
+}
+
+declare module './declarations' {
+  interface Configuration {
+    mechanicalEmailService: import('./helpers/services/mechanical-email').MechanicalEmailService;
+  }
+}

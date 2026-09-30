@@ -1,0 +1,17 @@
+{
+  "port": 8998,
+  "appName": "test",
+
+  "baseURL": "http://test:3030/feathersConsumerBoilerplate",
+  "redis": {
+    "host": "redis://redis:6379"
+  },
+  "middleware": {
+    "url": "https://profile-middleware-test.oncall-test.misp-solutions.com"
+  },
+  "centralHost":"https://api.integration.misp-solutions.com/central",
+  "appToken":"APP_TOKEN",
+  "sqs": {
+    "region": "us-east-1"
+  }
+}

@@ -1,0 +1,2 @@
+# This file may contain secrets, so we need to ignore it.
+env_local.ts

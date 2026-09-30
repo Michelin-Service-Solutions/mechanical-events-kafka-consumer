@@ -1,0 +1,27 @@
+{
+  "kafka": {
+    "arn": "arn:aws:kafka:us-east-1:380993790599:cluster/Dspcentral-kafkacluster-Staging/361111cd-6f8c-40cf-8918-b0ee85267a1e-10",
+    "encryptionKey": "967f2735-6098-4c28-94a6-cffec3a11076",
+    "connection": {
+      "brokers": [
+        "b-1-public.dspcentralkafkacluste.701hzd.c10.kafka.us-east-1.amazonaws.com:9196",
+        "b-2-public.dspcentralkafkacluste.701hzd.c10.kafka.us-east-1.amazonaws.com:9196"
+      ]
+    },
+    "consumer": {
+      "topics": [
+        "mechanical_cases_dms_staging"
+      ],
+      "fromBeginning": "KAFKA_FROM_BEGINNING"
+    },
+    "producer": {
+      "topic": "cdl-oncall-cases-staging"
+    }
+  },
+  "redis": {
+    "host": "redis://redis.staging:6379"
+  },
+  "middleware": {
+    "url": "https://profile-middleware-staging.oncall-staging.misp-solutions.com"
+  }
+}

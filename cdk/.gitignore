@@ -1,0 +1,47 @@
+# IGNORE ##############################################################
+
+# TypeScript declarations
+*.d.ts
+
+# Javascript source and maps
+*.js
+*.js.map
+
+# CDK asset staging directory
+cdk.context.json
+.cdk.staging
+cdk.out
+
+# Mac OS internal
+.DS_Store
+
+# NPM config
+.npmrc
+
+# Certificates for Global Protect
+cacerts.pem
+
+# Node JS modules
+node_modules
+
+# CDK output templates
+template.yml
+*template.yml
+
+# Pending developer tasks
+TODO.txt
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
+
+# EXCEPTIONS ##########################################################
+
+# ESLint configs
+!.eslintrc*.js
+
+# Prettier config
+!.prettierrc.js
+
+# Jest config
+!jest.config.js
+.env.docker

@@ -1,0 +1,30 @@
+{
+  "kafka": {
+    "arn": "arn:aws:kafka:us-east-1:380993790599:cluster/Dspcentral-kafkacluster-Prod/5c20cb6b-e4e6-414d-aee8-ec30f6dee9a6-3",
+    "encryptionKey": "967f2735-6098-4c28-94a6-cffec3a11076",
+    "connection": {
+      "brokers": [
+        "b-1-public.dspcentralkafkacluster.ybe4qd.c3.kafka.us-east-1.amazonaws.com:9196",
+        "b-2-public.dspcentralkafkacluster.ybe4qd.c3.kafka.us-east-1.amazonaws.com:9196",
+        "b-3-public.dspcentralkafkacluster.ybe4qd.c3.kafka.us-east-1.amazonaws.com:9196"
+      ]
+    },
+    "consumer": {
+      "topics": [
+        "mechanical_cases_dms_production"
+      ],
+      "fromBeginning": "KAFKA_FROM_BEGINNING"
+    },
+    "producer": {
+      "topic": "cdl-oncall-cases-production"
+    }
+  },
+  "redis": {
+    "host": "redis://redis.production:6379"
+  },
+  "middleware": {
+    "url": "https://profile-middleware-prod.oncall-prod.misp-solutions.com"
+  },
+  "allowExternal": [],
+  "auditRetentionDays": 30
+}

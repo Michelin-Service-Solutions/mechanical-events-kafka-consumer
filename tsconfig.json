@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "CommonJS",
+    //"outDir": "./lib",
+    "declaration": false,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "allowJs": false, // Disallows plain JS files.
+    "alwaysStrict": true,
+    "checkJs": false,
+    "esModuleInterop": true, // Needed for compatibility with EcmaScript modules.
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true, // This prevents potential error caused by case-insensitive operating systems (Windows).
+    "inlineSourceMap": true, // Enables source maps for debugging.
+    "isolatedModules": false,
+    "newLine": "lf", // Uses Unix newlines.
+    "noFallthroughCasesInSwitch": false, // Allow fallthrough cases in switches (i.e. when there's no `break` or `return` sentence at the end of a `case`).
+    "noImplicitAny": true, // Enforces expliciy `any` types, so they are shown as warnings.
+    "noImplicitOverride": true, // Detects overriden methods when they are not declared as such.
+    "noImplicitReturns": true, // Improves readability by making returns explicit.
+    "noImplicitThis": true, // Improves readability by making the `this` keyword explicit.
+    "noUnusedLocals": false, // While developing, we may need to leave unused variables temporarily. This should come as an ESLint warning though.
+    "noUnusedParameters": false, // These are valid when we cannot modify the signature, or when we implement unit test mocks.
+    "removeComments": false, // Reduces the size of emitted JavaScript.
+    "strict": true,
+    "useUnknownInCatchVariables": false, // Simplifies the catch blocks. It's safe to assume that the error variable will almost always extend `Error`.
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "baseUrl": ".", // Needed for layer support.
+    "paths": {
+      "/opt/*": [ // Mapping for layer paths, from their location in the codebase to their location at runtime.
+        "cdk/src/layers/util/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [ // Files to exclude from TypeScript transpiling.
+    "cdk.out",
+    "node_modules",
+    "cdk",
+    "lib",
+    "index.js"
+  ],
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register" // Support for absolute paths for `cdk synth`. Autimports sometimes get absolute paths rather than relative paths.
+    ]
+  }
+}

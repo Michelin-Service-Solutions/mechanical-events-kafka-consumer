@@ -1,0 +1,58 @@
+{
+  "appName": "APP_NAME",
+  "port": {
+    "__name": "PORT",
+    "__format": "number"
+  },
+  "host": "HOSTNAME",
+  "authentication": {
+    "secret": "FEATHERS_SECRET"
+  },
+  "environment": "NODE_ENV",
+  "kafka": {
+    "connection": {
+      "authenticationTimeout": "KAFKA_AUTH_TIMEOUT",      
+      "sasl": {
+        "password": "KAFKA_PASSWORD",
+        "username": "KAFKA_USERNAME"
+      }
+    },
+    "consumer": {
+      "groupId": "KAFKA_CONSUMER_GROUP",
+      "fromBeginning": "KAFKA_FROM_BEGINNING"
+    }
+  },
+  "oncallDB": {
+    "client": "pg",
+    "connection": {
+      "host": "ONCALL_DB_HOST",
+      "port": "ONCALL_DB_PORT",
+      "user": "ONCALL_DB_USER",
+      "password": "ONCALL_DB_PASSWORD",
+      "database": "ONCALL_DB_NAME"
+    }
+  },
+
+  "centralHost":"CENTRAL_HOST",
+
+  "auditsARN": "AUDITS_ARN",
+  "baseURL": "BASE_URL",
+  "appToken":"APP_TOKEN",
+  "sqs": {
+    "region": "AWS_REGION",
+    "retryQueueUrl": "RETRY_QUEUE_URL",
+    "dlqQueueUrl": "DLQ_QUEUE_URL"
+  },
+  "maxRetries": "MAX_RETRIES",
+  "redis": {
+    "prefix": "APP_NAME"
+  },
+  "middleware": {
+    "username": "MIDDLEWARE_USERNAME",
+    "password": "MIDDLEWARE_PASSWORD"
+  },
+  "elasticSearchUrl": "ELASTICSEARCH_URL",
+  "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
+  "dryRun": "DRY_RUN",
+  "surveyUrl": "SURVEY_URL"
+}

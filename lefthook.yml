@@ -1,0 +1,24 @@
+# Refer to the following link for additional details regarding lefthook configuration
+# https://github.com/evilmartians/lefthook/blob/master/docs/full_guide.md
+
+# the use of "{staged_files}" runs our command only on staged files, so we don't need to specify our glob _too_ strictly
+# after these commands are run, the modifications made are committed, so no need for `git add` (this would be redundant)
+#pre-commit:
+#  commands:
+#    style:
+#      glob: '**/*.{ts,tsx}'
+#      run:
+#        npx prettier --write "{staged_files}" # --check prevents a commit from being created. --write applies Prettier changes, but leaves them out of the new commit.
+#        # Ensure to manually amend the commit with the Prettier changes before creating another commit.
+#    lint:
+#      glob: '**/*.{ts,tsx}'
+#      run: npx eslint "{staged_files}"
+
+fix-styles:
+  commands:
+    style:
+      glob: '**/*.{ts,tsx}'
+      run: npx prettier --write "{staged_files}"
+    lint:
+      glob: '**/*.{ts,tsx}'
+      run: npx eslint --fix "{staged_files}"

@@ -1,0 +1,15 @@
+{
+  "name": "utils-layer",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@michelin/env-vars": "2.0.4",
+    "@aws-sdk/client-eventbridge": "^3.569.0",
+    "redis": "4.6.14"
+  },
+  "devDependencies": {
+    "knex": "3.1.0",
+    "pg": "8.11.3"
+  }
+}
