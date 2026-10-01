@@ -1,5 +1,5 @@
-# Tag with NodeJS version 20.15.1
-FROM node:22-alpine
+# Run on the supported Node.js 22 runtime from the AWS ECR Public mirror.
+FROM public.ecr.aws/docker/library/node:22-slim
 WORKDIR /usr/src/app
 
 # Copying only package.json files in order to install dependencies.
