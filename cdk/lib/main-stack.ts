@@ -24,6 +24,8 @@ export class MainStack extends Stack {
     super(scope, id, props);
 
     this.myEnv = props.myEnv;
+    const imageTag = process.env.IMAGE_TAG ?? process.env.version;
+    if (!imageTag) throw new Error('IMAGE_TAG is required to deploy MainStack');
 
     const vpc: IVpc = importVPC(this, this.myEnv.vpcConfig.props);
     const securityGroups: ISecurityGroup[] = [importSecurityGroup(this, this.myEnv.vpcConfig.securityGroupId)];
@@ -43,7 +45,7 @@ export class MainStack extends Stack {
       this.myEnv.imageRegistryAccount ?? this.myEnv.awsEnv.account,
       this.createECSTaskDefinitionEnv(),
       this.createECSTaskDefinitionSecrets(),
-      process.env.version!);
+      imageTag);
 
 
   }

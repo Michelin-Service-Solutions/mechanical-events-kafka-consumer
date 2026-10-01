@@ -33,6 +33,7 @@ export function createECS( scope: Construct,appName: string,envName: string,vpc:
     assignPublicIp: false,
     healthCheckGracePeriod: Duration.seconds(180),
     enableExecuteCommand: true,
+    circuitBreaker: { enable: true, rollback: true },
     vpcSubnets: { subnets },
     serviceName: `${appName}-service`,
   });
