@@ -12,7 +12,7 @@
       "topics": [
         "mechanical_cases_dms_staging"
       ],
-      "fromBeginning": "KAFKA_FROM_BEGINNING"
+      "fromBeginning": false
     },
     "producer": {
       "topic": "cdl-oncall-cases-staging"
