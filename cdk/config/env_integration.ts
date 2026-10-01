@@ -74,5 +74,5 @@ export const environment: MyEnv = {
   },
   elasticSearchUrl: `https://apigateway.${env}.misp-solutions.com/elasticsearch/lambdaproxy`,
   emailNotificationUrl: `https://api.${env}.misp-solutions.com/notifications`,
-  dryRun: true,
+  dryRun: false,
 };
