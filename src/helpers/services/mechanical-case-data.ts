@@ -26,7 +26,6 @@ export class MechanicalCaseData {
              c.customer_ship_to AS "ShipTo",
              c.customer_bill_to AS "BillTo",
              c.dealer_name AS "ServiceProvider",
-             c.arrived_at AS "ArrivalTime",
              c.rolling_at AS "WorkCompleteDate",
              cc.name AS "Driver",
              cc.phone AS "DriverPhone",

@@ -215,7 +215,10 @@ export class MechanicalEmailService {
     for (const recipient of contacts) {
       const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, rollingTimestamp, recipient.email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);
-      if (!acquiredLock) continue;
+      if (!acquiredLock) {
+        console.log(JSON.stringify({ mechanicalEmail: 'skipped_duplicate', caseNumber, idempotencyKey }));
+        continue;
+      }
 
       const requestBody = buildMechanicalEmailNotificationRequest(recipient, content);
       try {
@@ -231,6 +234,15 @@ export class MechanicalEmailService {
         if (!response.ok || responseText.includes('error')) {
           throw new Error(`Notification API failed for ${requestBody.email_to[0]}: ${response.status} ${responseText}`);
         }
+        console.log(JSON.stringify({
+          mechanicalEmail: 'sent',
+          caseNumber,
+          emailTo: requestBody.email_to,
+          emailCc: requestBody.email_cc ?? [],
+          templateId: requestBody.template_id,
+          status: response.status,
+          idempotencyKey,
+        }));
       } catch (error) {
         await redis.delete(idempotencyKey);
         throw error;
