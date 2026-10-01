@@ -172,8 +172,7 @@ export class KafkaManager {
 }
 
 export const KafkaManagerService = (app: Application) => {
-    const { connection } = app.get('kafka');    
-    console.log("config kafka:",connection);
+    const { connection } = app.get('kafka');
     const kafkaManager = new KafkaManager(connection);
     app.set('KafkaManagerService', kafkaManager);
 }

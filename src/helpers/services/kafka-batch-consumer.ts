@@ -18,8 +18,7 @@ export class KafkaBatchConsumer {
   ) { }
 
   async init(): Promise<void> {
-    console.log("config kafka:", JSON.stringify(this.kafkaConfig));
-     console.log("config consumerConfig:", JSON.stringify(this.consumerConfig));
+    console.log("config consumerConfig:", JSON.stringify(this.consumerConfig));
     this.kafka = new Kafka(this.kafkaConfig);
     this.consumer = this.kafka.consumer(this.consumerConfig as ConsumerConfig);
   }

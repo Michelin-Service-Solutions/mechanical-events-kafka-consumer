@@ -40,7 +40,7 @@ export class MechanicalCaseData {
       LEFT JOIN case_lines cl ON cl.case_id = c.id AND cl.type = 'supplied'
       LEFT JOIN assets a ON a.case_id = c.id
       WHERE c.id::text = ? OR c.case_number = ?
-      LIMIT 1`, [record.id, record.EventNumber ?? record.case_number]);
+      LIMIT 1`, [record.id ?? null, record.EventNumber ?? record.case_number ?? null]);
 
     return { ...(result.rows[0] ?? {}), ...record };
   }

@@ -11,7 +11,6 @@ declare module '../../declarations' {
 
 export const postgresql = (app: Application) => {
   const config = app.get('oncallDB')
-  console.log("config ONCALL postgresql:",config);
   const db = knex(config!)
 
   app.set('oncallDBClient', db)
