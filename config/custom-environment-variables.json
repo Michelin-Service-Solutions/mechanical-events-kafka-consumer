@@ -19,7 +19,10 @@
     },
     "consumer": {
       "groupId": "KAFKA_CONSUMER_GROUP",
-      "fromBeginning": "KAFKA_FROM_BEGINNING"
+      "fromBeginning": {
+        "__name": "KAFKA_FROM_BEGINNING",
+        "__format": "boolean"
+      }
     }
   },
   "oncallDB": {
@@ -53,6 +56,9 @@
   },
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
-  "dryRun": "DRY_RUN",
+  "dryRun": {
+    "__name": "DRY_RUN",
+    "__format": "boolean"
+  },
   "surveyUrl": "SURVEY_URL"
 }
