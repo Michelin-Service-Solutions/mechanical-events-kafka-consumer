@@ -19,24 +19,6 @@ export type Application = FeathersApplication<ServiceTypes, Configuration>
 // The context for hook functions - can be typed with a service class
 export type HookContext<S = any> = FeathersHookContext<Application, S>
 
-export interface KafkaCredentials {
-  username: string;
-  password: string;
-}
-
-export interface FleetContact {
-  email?: string;
-  email_address?: string;
-  first_name?: string;
-  last_name?: string;
-  name?: string;
-  contact_type?: string | string[];
-  contact_types?: string[];
-  notification_preferences?: string[];
-  notification_subscription?: Array<{ type?: string; event?: string; method?: string[]; cc_emails?: string[] }>;
-  is_deleted?: boolean;
-}
-
 declare module './declarations' {
   interface Configuration {
     mechanicalEmailService: import('./helpers/services/mechanical-email').MechanicalEmailService;

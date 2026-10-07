@@ -1,7 +1,6 @@
 import { MechanicalCaseStatus, getMechanicalCaseStatus } from "./enums";
-import { DMSMessage, OnCallNewCase, OnCallUpdateCase, RetryCaseData } from "./interfaces/message-declarations-ers";
+import { DMSMessage, RetryCaseData } from "./interfaces/message-declarations-ers";
 import { app } from "src/app";
-import { FnaCaseRecord } from './services/mechanical-email';
 
 
 enum Operation {
@@ -15,7 +14,7 @@ async function sendToQueue(dmsMessage: DMSMessage): Promise<any> {
 
     try {
         const later10sec = Date.now() + 10 * 1000;
-        const eventNumber = 'EventNumber' in dmsMessage.data ? dmsMessage.data.EventNumber : undefined;
+        const eventNumber = dmsMessage.data.EventNumber;
         const message: RetryCaseData = {
             id: dmsMessage.data.id ?? eventNumber ?? '',
             case_number: dmsMessage.data.case_number ?? eventNumber ?? '',
@@ -36,12 +35,12 @@ export class MessageHandlerErs {
 
     private static async processRollingCase(data: DMSMessage['data'], logs: string[]): Promise<void> {
         if (data.status !== MechanicalCaseStatus.Rolling
-            && getMechanicalCaseStatus(data as FnaCaseRecord) !== MechanicalCaseStatus.Rolling) {
+            && getMechanicalCaseStatus(data) !== MechanicalCaseStatus.Rolling) {
             logs.push('Mechanical case is not Vehicle Rolling.');
             return;
         }
 
-        await app.get('mechanicalEmailService').process(data as FnaCaseRecord);
+        await app.get('mechanicalEmailService').process(data);
         logs.push('Vehicle Rolling email processed.');
     }
 
@@ -85,7 +84,7 @@ export class MessageHandlerErs {
         console.log("Finish procesing message...");
         // We log the entire processing result
         console.log(JSON.stringify({
-            id: `dms~${dmsMessage.data?.case_number ?? 'undefined'}`,
+            id: `dms~${dmsMessage.data?.EventNumber ?? dmsMessage.data?.case_number ?? 'undefined'}`,
             dmsMessage,
             logs
         }));

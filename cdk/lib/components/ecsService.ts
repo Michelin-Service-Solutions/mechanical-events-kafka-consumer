@@ -109,8 +109,6 @@ const retryQueueARN = Fn.importValue(`${appName}-retryQueue-${envName}-ARN`);
           actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret']
         }
       ),
-      new PolicyStatement({ effect: Effect.ALLOW, resources: ['*'], actions: ['events:PutEvents'] }),
-      new PolicyStatement({ effect: Effect.ALLOW, resources: ['*'], actions: ['ses:SendEmail', 'ses:SendRawEmail'] }),
       new PolicyStatement({
         effect: Effect.ALLOW, resources: [retryQueueARN, dlqQueueARN], actions: [
           "sqs:SendMessage",
@@ -127,23 +125,8 @@ const retryQueueARN = Fn.importValue(`${appName}-retryQueue-${envName}-ARN`);
         effect: Effect.ALLOW, resources: ['*'], actions: [
           "kms:Decrypt",
           "kms:DescribeKey",
-          "kms:Encrypt",
-				  "kms:GenerateDataKey",
-          "kms:CreateGrant"
         ],
       }),
-       new PolicyStatement({
-        effect: Effect.ALLOW, resources: ['*'], actions: [          
-          "secretsmanager:CreateSecret"          
-        ],
-      })
-      ,
-       new PolicyStatement({
-        effect: Effect.ALLOW, resources: ['*'], actions: [
-           "kafka:BatchAssociateScramSecret",            
-        ],
-      })
-       
     ]
   })
 
@@ -152,7 +135,6 @@ const retryQueueARN = Fn.importValue(`${appName}-retryQueue-${envName}-ARN`);
     roleName: `${appName}-${envName}-Role`,
     managedPolicies: [
       ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
-      ManagedPolicy.fromAwsManagedPolicyName('AmazonRDSReadOnlyAccess')
     ],
     inlinePolicies: {
       [`${appName}-${envName}-Policy`]: policies

@@ -14,8 +14,6 @@ const main = async () => {
   await restApi.setup(server)
   logger.info(`-----------------------------Feathers app listening on http://${host}:${port}${"/" + app.get('appName')}--------------------`);
 
-  await restApi.get("KafkaManagerService").initProducer();
-
   fetchMessages(restApi);
 
   await restApi.get("KafkaBatchConsumer").run();

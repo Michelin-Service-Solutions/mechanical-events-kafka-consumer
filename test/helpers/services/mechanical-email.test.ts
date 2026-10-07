@@ -124,31 +124,22 @@ describe('getEligibleMechanicalRecipients', () => {
 });
 
 describe('MechanicalEmailService delivery', () => {
-  const enrichedCase = {
-    id: 'case-id',
+  const rollingCase = {
     EventNumber: 'M123',
     RepairStarted: '2026-09-28T14:15:00.000Z',
     WorkCompleteDate: '2026-04-10T12:00:00.000Z',
-    ReportingCategory: 'Maintenance',
     InitialTCDescription: 'BRAKES-MAJOR / AIR SYSTEM',
     Complaint: 'SCR system error',
     Correction: 'Cleared the fault code',
     ShipTo: '1145733',
     BillTo: '1145733',
   };
-  const rollingEvent = {
-    id: 'case-id',
-    case_number: 'M123',
-    status: 'rolling',
-  };
   const setIfAbsent: any = jest.fn();
   const removeLock: any = jest.fn();
   const fetchMock: any = jest.fn();
-  const mechanicalCaseData = { get: jest.fn() as any };
   const elasticsearch = { search: jest.fn() as any };
   const app = {
     get: (key: string) => ({
-      mechanicalCaseData,
       elasticSearchClient: elasticsearch,
       redisClient: { setIfAbsent, delete: removeLock },
       dryRun: false,
@@ -162,7 +153,6 @@ describe('MechanicalEmailService delivery', () => {
     setIfAbsent.mockReset().mockResolvedValue(true);
     removeLock.mockReset().mockResolvedValue(undefined);
     fetchMock.mockReset();
-    mechanicalCaseData.get.mockReset().mockResolvedValue(enrichedCase);
     elasticsearch.search.mockReset().mockResolvedValue({ body: { hits: { hits: [{ _source: subscribedContact }] } } });
     global.fetch = fetchMock as typeof fetch;
   });
@@ -172,8 +162,8 @@ describe('MechanicalEmailService delivery', () => {
     setIfAbsent.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     const service = new MechanicalEmailService(app);
 
-    await service.process(rollingEvent);
-    await service.process(rollingEvent);
+    await service.process(rollingCase);
+    await service.process(rollingCase);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -197,9 +187,7 @@ describe('MechanicalEmailService delivery', () => {
 
   test('uses driver phone and provider name when the case has them', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
-    mechanicalCaseData.get.mockResolvedValue({ ...enrichedCase, DriverPhone: '555-0100', ServiceProvider: 'Acme Truck Repair' });
-
-    await new MechanicalEmailService(app).process(rollingEvent);
+    await new MechanicalEmailService(app).process({ ...rollingCase, DriverPhone: '555-0100', ServiceProvider: 'Acme Truck Repair' });
 
     const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
     expect(content.driver_phone).toBe('555-0100');
@@ -210,7 +198,7 @@ describe('MechanicalEmailService delivery', () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, text: async () => 'service error' });
     const service = new MechanicalEmailService(app);
 
-    await expect(service.process(rollingEvent)).rejects.toThrow('Notification API failed');
+    await expect(service.process(rollingCase)).rejects.toThrow('Notification API failed');
 
     expect(removeLock).toHaveBeenCalledWith(
       createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),

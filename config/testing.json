@@ -1,7 +1,5 @@
 {
   "kafka": {
-    "arn": "arn:aws:kafka:us-east-1:540573004174:cluster/Dspcentral-kafkacluster-Testing/46453093-d2bf-49c7-a2cc-703366fb6f71-7",
-    "encryptionKey":"dcb8b260-0243-4924-b984-8293c8977f4f",
     "connection": {
       "brokers": [
         "b-2-public.dspcentralkafkacluster.uwq5q3.c7.kafka.us-east-1.amazonaws.com:9196",
@@ -13,15 +11,9 @@
         "mechanical_cases_dms_testing"
       ],
       "fromBeginning": false
-    },
-    "producer": {
-      "topic": "cdl-oncall-cases-testing"
     }
   },
   "redis": {
     "host": "redis://redis.testing:6379"
-  },
-  "middleware": {
-    "url": "https://profile-middleware-test.oncall-test.misp-solutions.com"
   }
 }

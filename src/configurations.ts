@@ -3,33 +3,19 @@ import fs from 'fs';
 // Declarations.
 import { Application } from './declarations';
 // Utils.
-import { postgresql as oncallDB } from './helpers/services/postgresql-ers'
 import { KafkaConsumerService } from './helpers/services/kafka-batch-consumer';
-import { CentralService } from '../src/helpers/central'
 import redis from './redis';
-import { KafkaManagerService } from './helpers/services/kafka-manager';
 import { SQSService } from './helpers/services/sqs-adapter';
 import { mechanicalEmailService } from './helpers/services/mechanical-email';
 import { elasticsearch } from './helpers/services/elasticsearch';
-import { mechanicalCaseData } from './helpers/services/mechanical-case-data';
 import { notificationTemplates } from './helpers/services/notification-templates';
-
-
-
-export async function configure_before(app: Application): Promise<void> {
-  app.configure(KafkaManagerService);
-}
 
 export function configure_after(app: Application): void {
   addHealthCheck(app);
-  app.configure(oncallDB);
   app.configure(redis);
-  app.configure(CentralService);
-
   app.configure(KafkaConsumerService);
   app.configure(SQSService);
   app.configure(elasticsearch);
-  mechanicalCaseData(app);
   mechanicalEmailService(app);
   notificationTemplates(app);
 }

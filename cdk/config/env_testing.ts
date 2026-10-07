@@ -33,13 +33,6 @@ export const environment: MyEnv = {
   kafka: {
     kafkaCredName: 'AmazonMSK_/Testsecret2/sasl_credentials_with_key',
   },
-  oncallDB: {
-    username: `/oncall_test/${env}/cases_db/userName`,
-    password: `/oncall_test/${env}/cases_db/password`,
-    host: 'oncall-test-rds.cwkobdc3y45e.us-east-1.rds.amazonaws.com',
-    port: '5432',
-    database: 'case_prod',
-  },
   elasticSearchUrl: `https://apigateway.${env}.misp-solutions.com/elasticsearch/lambdaproxy`,
   emailNotificationUrl: `https://api.${env}.misp-solutions.com/notifications`,
   dryRun: true,
