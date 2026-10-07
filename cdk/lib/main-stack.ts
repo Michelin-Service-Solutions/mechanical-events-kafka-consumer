@@ -55,30 +55,18 @@ export class MainStack extends Stack {
 
     const retryQueueURL = Fn.importValue(`${this.myEnv.appName}-retryQueue-${this.myEnv.environment}-URL`);
     const dlqQueueURL = Fn.importValue(`${this.myEnv.appName}-dlqQueue-${this.myEnv.environment}-URL`);
-    const auditsBusARN = `arn:aws:events:${this.myEnv.awsEnv.region}:${this.myEnv.awsEnv.account}:event-bus/${this.myEnv.auditsBusName}`;
-
 
     return {
       APP_NAME: this.myEnv.appName,
-      CENTRAL_HOST: `${this.myEnv.baseURL}/central`,
       AWS_REGION: this.myEnv.awsEnv.region,
       NODE_ENV: this.myEnv.environment,
-      ROOT_URL: this.myEnv.appName,
       ELASTICSEARCH_URL: this.myEnv.elasticSearchUrl,
       EMAIL_NOTIFICATION_URL: this.myEnv.emailNotificationUrl,
       DRY_RUN: String(this.myEnv.dryRun),
 
       KAFKA_CONSUMER_GROUP: `${this.myEnv.environment}.${this.myEnv.appName}`,
 
-      REDIS: JSON.stringify(this.myEnv.redis),
-      BASE_URL: `${this.myEnv.baseURL}/${this.myEnv.appName}`,
-
-      ONCALL_DB_HOST: this.myEnv.oncallDB.host,
-      ONCALL_DB_PORT: this.myEnv.oncallDB.port,
-      ONCALL_DB_NAME: this.myEnv.oncallDB.database,
-
       LAST_UPDATE: new Date().toISOString(),
-      AUDITS_ARN: auditsBusARN,
 
       RETRY_QUEUE_URL: retryQueueURL,
       DLQ_QUEUE_URL: dlqQueueURL,
@@ -102,27 +90,6 @@ export class MainStack extends Stack {
           parameterName: this.myEnv.appToken,
         }),
       ),
-      MIDDLEWARE_USERNAME: Secret.fromSsmParameter(
-        StringParameter.fromSecureStringParameterAttributes(this, 'MIDDLEWARE_USERNAME', {
-          parameterName: this.myEnv.middleware.username,
-        }),
-      ),
-      MIDDLEWARE_PASSWORD: Secret.fromSsmParameter(
-        StringParameter.fromSecureStringParameterAttributes(this, 'MIDDLEWARE_PASSWORD', {
-          parameterName: this.myEnv.middleware.password,
-        }),
-      ),
-      ONCALL_DB_USER: Secret.fromSsmParameter(
-        StringParameter.fromSecureStringParameterAttributes(this, 'ONCALL_DB_USER', {
-          parameterName: this.myEnv.oncallDB.username,
-        }),
-      ),
-      ONCALL_DB_PASSWORD: Secret.fromSsmParameter(
-        StringParameter.fromSecureStringParameterAttributes(this, 'ONCALL_DB_PASSWORD', {
-          parameterName: this.myEnv.oncallDB.password,
-        }),
-      ),
-
     }
   }
 }

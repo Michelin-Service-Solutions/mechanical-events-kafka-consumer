@@ -2,7 +2,6 @@ import type { Application } from '../../declarations';
 import { getMechanicalCaseStatus, MechanicalCaseRecord, MechanicalCaseStatus } from '../enums';
 import { redisClientPath } from '../../redis';
 import { elasticSearchClientPath } from './elasticsearch';
-import { mechanicalCaseDataPath } from './mechanical-case-data';
 
 export interface ContactRelationship {
   customer_number: string;
@@ -58,22 +57,37 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
   DriverPhone?: string;
   ContactPhone?: string;
   ServiceProvider?: string;
-  ServiceType?: string;
-  RequestedServices?: string;
-  ReportingCategory?: string;
-  ArrivalTime?: string;
-  EstimatedVendorArrival?: string;
-  RepairStarted?: string;
+  InitialTCDescription?: string;
   Complaint?: string;
   Correction?: string;
   ShipTo?: string;
   BillTo?: string;
-  TirePosition?: string;
-  FailureReason?: string;
-  EquipmentType?: string;
 }
 
 const value = (input: unknown): string => input == null || input === '' ? ' ' : String(input);
+
+const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input);
+
+export const DEFAULT_DRIVER_PHONE = 'N/A';
+export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
+
+export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
+
+export function formatEasternTime(input?: string | null): string {
+  const date = input ? new Date(input) : undefined;
+  if (!date || Number.isNaN(date.getTime())) return ' ';
+  const formatted = date.toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+  return `${formatted.replace(',', '')} EST`;
+}
 
 const normalizeCustomerNumber = (customerNumber: string): string => customerNumber.replace(/^1~/, '');
 
@@ -164,9 +178,9 @@ export function buildMechanicalEmailNotificationRequest(
     ...(recipient.ccEmails.length ? { email_cc: recipient.ccEmails } : {}),
     notifiable_type: 'email',
     application: 'michelin-oncall',
-    template_id: 'oncallfeedback',
+    template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
     language: 'en_US',
-    subject: 'ONCall summary & feedback email',
+    subject: `ONCall Summary & Feedback for Event ${content.case_number}`,
     content,
   };
 }
@@ -178,28 +192,23 @@ export class MechanicalEmailService {
     if (record.status !== MechanicalCaseStatus.Rolling
       && getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
-    const enriched = await this.app.get(mechanicalCaseDataPath).get(record);
-    const contacts = await this.findContacts(enriched.ShipTo, enriched.BillTo);
+    const contacts = await this.findContacts(record.ShipTo, record.BillTo);
     if (!contacts.length) return;
 
     const content = {
-      driver_name: value(enriched.Driver),
-      driver_phone: value(enriched.DriverPhone ?? enriched.ContactPhone),
-      dealer_name: value(enriched.ServiceProvider),
-      service_type: value(enriched.ServiceType ?? enriched.RequestedServices ?? enriched.ReportingCategory),
-      arrival_time: value(enriched.RepairStarted ?? enriched.ArrivalTime),
-      vehicle_rolling_time: value(enriched.WorkCompleteDate),
-      case_number: value(enriched.EventNumber ?? enriched.case_number),
-      po_number: value(enriched.CustomerPoNumber),
-      event_address: [enriched.Event_Address, enriched.Event_City, enriched.Event_State, enriched.Event_Country].filter(Boolean).join(', '),
-      unit_number: value(enriched.Unit),
-      type: value(enriched.EquipmentType),
-      tire_position: value(enriched.TirePosition),
-      failure_reason: value(enriched.FailureReason),
-      description: value(enriched.Complaint),
-      repair_notes: value(enriched.Correction),
-      notes: value(enriched.Correction),
-      fleet_name: value(enriched.CustomerName),
+      fleet_name: value(record.CustomerName),
+      driver_name: value(record.Driver),
+      driver_phone: valueOr(record.DriverPhone ?? record.ContactPhone, DEFAULT_DRIVER_PHONE),
+      dealer_name: valueOr(record.ServiceProvider, DEFAULT_SERVICE_PROVIDER),
+      service_type: value(record.InitialTCDescription),
+      arrival_time: formatEasternTime(record.RepairStarted),
+      vehicle_rolling_time: formatEasternTime(record.WorkCompleteDate),
+      case_number: value(record.EventNumber ?? record.case_number),
+      po_number: value(record.CustomerPoNumber),
+      event_address: [record.Event_Address, record.Event_City, record.Event_State, record.Event_Country].filter(Boolean).join(', '),
+      unit_number: value(record.Unit),
+      description: value(record.Complaint),
+      repair_notes: value(record.Correction),
       survey_url: this.app.get('surveyUrl'),
     };
 
@@ -211,7 +220,8 @@ export class MechanicalEmailService {
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;
-    const rollingTimestamp = content.vehicle_rolling_time;
+    // Raw value keeps keys stable regardless of display formatting.
+    const rollingTimestamp = value(record.WorkCompleteDate);
     for (const recipient of contacts) {
       const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, rollingTimestamp, recipient.email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);

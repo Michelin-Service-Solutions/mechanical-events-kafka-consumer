@@ -25,29 +25,10 @@ export interface MyEnv extends ECSPipelineEnv {
   readonly kafka: {
     readonly kafkaCredName: string;
   };
-  readonly baseURL: string;
-  readonly redis: {
-    readonly host: string;
-  };
 
-  readonly oncallDB: DBConnection
- 
-  readonly auditsBusName: string;
   readonly appToken: string;
   readonly maxRetries: number;
-  readonly middleware: {
-    readonly username: string;
-    readonly password: string;
-  };
   readonly elasticSearchUrl: string;
   readonly emailNotificationUrl: string;
   readonly dryRun: boolean;
-}
-
-export interface DBConnection {
-  readonly username: string;
-  readonly password: string;
-  readonly host: string;
-  readonly port: string;
-  readonly database: string;
 }

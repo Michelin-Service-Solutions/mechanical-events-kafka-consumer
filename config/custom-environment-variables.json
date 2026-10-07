@@ -5,10 +5,6 @@
     "__format": "number"
   },
   "host": "HOSTNAME",
-  "authentication": {
-    "secret": "FEATHERS_SECRET"
-  },
-  "environment": "NODE_ENV",
   "kafka": {
     "connection": {
       "authenticationTimeout": "KAFKA_AUTH_TIMEOUT",      
@@ -25,21 +21,6 @@
       }
     }
   },
-  "oncallDB": {
-    "client": "pg",
-    "connection": {
-      "host": "ONCALL_DB_HOST",
-      "port": "ONCALL_DB_PORT",
-      "user": "ONCALL_DB_USER",
-      "password": "ONCALL_DB_PASSWORD",
-      "database": "ONCALL_DB_NAME"
-    }
-  },
-
-  "centralHost":"CENTRAL_HOST",
-
-  "auditsARN": "AUDITS_ARN",
-  "baseURL": "BASE_URL",
   "appToken":"APP_TOKEN",
   "sqs": {
     "region": "AWS_REGION",
@@ -49,10 +30,6 @@
   "maxRetries": "MAX_RETRIES",
   "redis": {
     "prefix": "APP_NAME"
-  },
-  "middleware": {
-    "username": "MIDDLEWARE_USERNAME",
-    "password": "MIDDLEWARE_PASSWORD"
   },
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",

@@ -38,17 +38,6 @@ export const environment: MyEnv = {
   },
 
   appToken: '/central_prod/staging/kafka_oncall_notifications/app_token',
-  middleware: {
-    username: `/central_prod/${env}/open_api_oncall/ers_middleware_user`,
-    password: `/central_prod/${env}/open_api_oncall/ers_middleware_password`,
-  },
-  oncallDB: {
-    username: '/oncall_stg/staging/cases_db/username',
-    password: '/oncall_stg/staging/cases_db/password',
-    host: 'readreplica-oncall-rds-stg.crgae0rlxe9u.us-east-1.rds.amazonaws.com',
-    port: '5432',
-    database: 'case_prod',
-  },
 
   docker: {
     username: 'michelinservicesolutionsci',

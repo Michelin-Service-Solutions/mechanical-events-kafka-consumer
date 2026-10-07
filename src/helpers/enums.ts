@@ -1,16 +1,3 @@
-export enum OnCallCaseStatus  {
-    New = "new",
-    Dispatch = "dispatch",
-    Dispatched = "dispatched",
-    EnRoute = "en_route",
-    Arrived = "arrived",
-    Rolling = "rolling",
-    Closed = "closed",
-    Canceled = "canceled",
-    ClosedCanceled = "closed_canceled",
-    DryRunCanceled = "dry_run_canceled",
-}
-
 export enum MechanicalCaseStatus {
     New = "new",
     Dispatched = "dispatched",

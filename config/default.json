@@ -1,26 +1,6 @@
 {
   "host": "localhost",
   "port": 3030,
-  "public": "./public/",
-  "origins": [
-    "http://localhost:3030"
-  ],
-  "paginate": {
-    "default": 10,
-    "max": 50
-  },
-  
-  "oncallDB": {
-    "client": "pg",
-    "connection": {
-      "host": "ONCALL_DB_HOST",
-      "port": "ONCALL_DB_PORT",
-      "user": "ONCALL_DB_USER",
-      "password": "ONCALL_DB_PASSWORD",
-      "database": "ONCALL_DB_NAME"
-    }
-  },
-  
 
   "kafka": {
     "connection": {
@@ -35,28 +15,16 @@
     }
   },
   "redis": {
-    "host": "redis://redis:6379",
-    "tokenPrefix": "KafkaOnCallNotifications"
+    "host": "redis://redis:6379"
   },
 
-  "auditsARN": "AUDITS_ARN",
-  "baseURL": "BASE_URL",
-  "mtvaSystemUserEmail": "oncallvirtualassistant@michelin.com",
-  "allowExternal": [
-    "event",
-    "audits"
-  ],
-  "auditRetentionDays": 7,
+  "allowExternal": [],
   "sqs": {
     "region": "AWS_REGION",
     "retryQueueUrl": "RETRY_QUEUE_URL",
     "dlqQueueUrl": "DLQ_QUEUE_URL"
   },
   "maxRetries": "MAX_RETRIES",
-  "middleware": {
-    "username": "",
-    "password": ""
-  },
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
   "dryRun": false,

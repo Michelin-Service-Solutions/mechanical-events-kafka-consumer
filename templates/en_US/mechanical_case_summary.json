@@ -1,0 +1,15 @@
+{
+  "template_id": "mechanical_case_summary",
+  "name": "MechanicalCaseSummary",
+  "application": "michelin-oncall",
+  "language": "en_US",
+  "subject": "ONCall Summary & Feedback",
+  "text": "mechanical_case_summary",
+  "json": {
+    "notification_type": "mechanical_case_summary",
+    "description": "<p>mechanical_case_summary</p>",
+    "title": "mechanical_case_summary",
+    "status": "mechanical_case_summary"
+  },
+  "html": "<p>Hi {{fleet_name}},</p><p>Michelin ONCall recently serviced one of your vehicles. Here is a summary of the event:</p><p><strong>Service Summary</strong></p><ul><li>Driver Name: {{driver_name}}</li><li>Contact Phone: {{driver_phone}}</li><li>Service Provider: {{dealer_name}}</li><li>Service Type: {{service_type}}</li><li>Arrival Time: {{arrival_time}}</li><li>Vehicle Rolling Time: {{vehicle_rolling_time}}</li></ul><p><strong>Service Details</strong></p><ul><li>ONCall Event #: {{case_number}}</li><li>PO: {{po_number}}</li><li>Location: {{event_address}}</li><li>Unit #: {{unit_number}}</li></ul><p><strong>Services</strong></p><ul><li>Description: {{description}}</li><li>Repair Notes: {{repair_notes}}</li></ul><p>We strive to continually provide exceptional service to our customers and value your input. Please take this <a href=\"{{survey_url}}\">survey</a> to provide us feedback on this event.</p><p>Thank you,</p><p>Michelin ONCall</p>"
+}

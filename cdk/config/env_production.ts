@@ -43,17 +43,6 @@ export const environment: MyEnv = {
   },
  
   appToken: '/central_prod/production/kafka_oncall_notifications/app_token',
-  middleware: {
-    username: `/central_prod/${env}/open_api_oncall/ers_middleware_user`,
-    password: `/central_prod/${env}/open_api_oncall/ers_middleware_password`,
-  },
-  oncallDB: {
-    username: '/oncall_prod/production/cases_db/username',
-    password: '/oncall_prod/production/cases_db/password',
-    host: 'read-oncall-prod.cmygrrqazin8.us-east-1.rds.amazonaws.com',
-    port: '5432',
-    database: 'case_prod',
-  },
   elasticSearchUrl: `https://apigateway.${env}.misp-solutions.com/elasticsearch/lambdaproxy`,
   emailNotificationUrl: `https://api.${env}.misp-solutions.com/notifications`,
   dryRun: true,
