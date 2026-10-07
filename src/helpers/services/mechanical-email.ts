@@ -190,7 +190,7 @@ export function buildMechanicalEmailNotificationRequest(
     application: 'michelin-oncall',
     template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
     language: 'en_US',
-    subject: 'ONCall summary & feedback email',
+    subject: `ONCall Summary & Feedback for Event ${content.case_number}`,
     content,
   };
 }

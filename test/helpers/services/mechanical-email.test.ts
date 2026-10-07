@@ -118,6 +118,7 @@ describe('getEligibleMechanicalRecipients', () => {
       email_to: ['recipient@example.com'],
       email_cc: ['copy@example.com'],
       language: 'en_US',
+      subject: 'ONCall Summary & Feedback for Event M123',
     });
   });
 });
