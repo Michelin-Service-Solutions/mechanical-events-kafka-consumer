@@ -12,6 +12,7 @@ import { SQSService } from './helpers/services/sqs-adapter';
 import { mechanicalEmailService } from './helpers/services/mechanical-email';
 import { elasticsearch } from './helpers/services/elasticsearch';
 import { mechanicalCaseData } from './helpers/services/mechanical-case-data';
+import { notificationTemplates } from './helpers/services/notification-templates';
 
 
 
@@ -30,6 +31,7 @@ export function configure_after(app: Application): void {
   app.configure(elasticsearch);
   mechanicalCaseData(app);
   mechanicalEmailService(app);
+  notificationTemplates(app);
 }
 
 function addHealthCheck(app: Application): void {

@@ -75,6 +75,24 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
 
 const value = (input: unknown): string => input == null || input === '' ? ' ' : String(input);
 
+export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
+
+export function formatEasternTime(input?: string | null): string {
+  const date = input ? new Date(input) : undefined;
+  if (!date || Number.isNaN(date.getTime())) return ' ';
+  const formatted = date.toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+  return `${formatted.replace(',', '')} EST`;
+}
+
 const normalizeCustomerNumber = (customerNumber: string): string => customerNumber.replace(/^1~/, '');
 
 const normalizeEmail = (email?: string): string => email?.replace(/[\[\]]/g, '').replace(/^mailto:/i, '').trim().toLowerCase() ?? '';
@@ -164,7 +182,7 @@ export function buildMechanicalEmailNotificationRequest(
     ...(recipient.ccEmails.length ? { email_cc: recipient.ccEmails } : {}),
     notifiable_type: 'email',
     application: 'michelin-oncall',
-    template_id: 'oncallfeedback',
+    template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
     language: 'en_US',
     subject: 'ONCall summary & feedback email',
     content,
@@ -183,23 +201,20 @@ export class MechanicalEmailService {
     if (!contacts.length) return;
 
     const content = {
+      fleet_name: value(enriched.CustomerName),
       driver_name: value(enriched.Driver),
-      driver_phone: value(enriched.DriverPhone ?? enriched.ContactPhone),
-      dealer_name: value(enriched.ServiceProvider),
-      service_type: value(enriched.ServiceType ?? enriched.RequestedServices ?? enriched.ReportingCategory),
-      arrival_time: value(enriched.RepairStarted ?? enriched.ArrivalTime),
-      vehicle_rolling_time: value(enriched.WorkCompleteDate),
+      // Contact Phone, Service Provider and Service Type: sources pending confirmation (GSDCOF-1744).
+      driver_phone: ' ',
+      dealer_name: ' ',
+      service_type: ' ',
+      arrival_time: formatEasternTime(enriched.RepairStarted),
+      vehicle_rolling_time: formatEasternTime(enriched.WorkCompleteDate),
       case_number: value(enriched.EventNumber ?? enriched.case_number),
       po_number: value(enriched.CustomerPoNumber),
       event_address: [enriched.Event_Address, enriched.Event_City, enriched.Event_State, enriched.Event_Country].filter(Boolean).join(', '),
       unit_number: value(enriched.Unit),
-      type: value(enriched.EquipmentType),
-      tire_position: value(enriched.TirePosition),
-      failure_reason: value(enriched.FailureReason),
       description: value(enriched.Complaint),
       repair_notes: value(enriched.Correction),
-      notes: value(enriched.Correction),
-      fleet_name: value(enriched.CustomerName),
       survey_url: this.app.get('surveyUrl'),
     };
 
@@ -211,7 +226,8 @@ export class MechanicalEmailService {
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;
-    const rollingTimestamp = content.vehicle_rolling_time;
+    // Raw value keeps keys stable regardless of display formatting.
+    const rollingTimestamp = value(enriched.WorkCompleteDate);
     for (const recipient of contacts) {
       const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, rollingTimestamp, recipient.email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);

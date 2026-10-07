@@ -174,12 +174,16 @@ describe('MechanicalEmailService delivery', () => {
     await service.process(rollingEvent);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
-    expect(content.arrival_time).toBe('2026-09-28T14:15:00.000Z');
-    expect(content.service_type).toBe('Maintenance');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const content = body.content;
+    expect(body.template_id).toBe('mechanical_case_summary');
+    expect(content.arrival_time).toBe('09/28/2026 10:15:00 EST');
+    expect(content.vehicle_rolling_time).toBe('04/10/2026 08:00:00 EST');
+    expect(content.service_type).toBe(' ');
     expect(content.description).toBe('SCR system error');
     expect(content.repair_notes).toBe('Cleared the fault code');
-    expect(content.notes).toBe('Cleared the fault code');
+    expect(content).not.toHaveProperty('notes');
+    expect(content).not.toHaveProperty('type');
     expect(setIfAbsent).toHaveBeenCalledWith(
       createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),
       'sent',
