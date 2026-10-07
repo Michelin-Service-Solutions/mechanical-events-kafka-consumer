@@ -61,6 +61,7 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
   ServiceType?: string;
   RequestedServices?: string;
   ReportingCategory?: string;
+  InitialTCDescription?: string;
   ArrivalTime?: string;
   EstimatedVendorArrival?: string;
   RepairStarted?: string;
@@ -74,6 +75,11 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
 }
 
 const value = (input: unknown): string => input == null || input === '' ? ' ' : String(input);
+
+const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input);
+
+export const DEFAULT_DRIVER_PHONE = 'N/A';
+export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
 
 export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
 
@@ -203,10 +209,9 @@ export class MechanicalEmailService {
     const content = {
       fleet_name: value(enriched.CustomerName),
       driver_name: value(enriched.Driver),
-      // Contact Phone, Service Provider and Service Type: sources pending confirmation (GSDCOF-1744).
-      driver_phone: ' ',
-      dealer_name: ' ',
-      service_type: ' ',
+      driver_phone: valueOr(enriched.DriverPhone ?? enriched.ContactPhone, DEFAULT_DRIVER_PHONE),
+      dealer_name: valueOr(enriched.ServiceProvider, DEFAULT_SERVICE_PROVIDER),
+      service_type: value(enriched.InitialTCDescription),
       arrival_time: formatEasternTime(enriched.RepairStarted),
       vehicle_rolling_time: formatEasternTime(enriched.WorkCompleteDate),
       case_number: value(enriched.EventNumber ?? enriched.case_number),

@@ -129,6 +129,7 @@ describe('MechanicalEmailService delivery', () => {
     RepairStarted: '2026-09-28T14:15:00.000Z',
     WorkCompleteDate: '2026-04-10T12:00:00.000Z',
     ReportingCategory: 'Maintenance',
+    InitialTCDescription: 'BRAKES-MAJOR / AIR SYSTEM',
     Complaint: 'SCR system error',
     Correction: 'Cleared the fault code',
     ShipTo: '1145733',
@@ -179,7 +180,9 @@ describe('MechanicalEmailService delivery', () => {
     expect(body.template_id).toBe('mechanical_case_summary');
     expect(content.arrival_time).toBe('09/28/2026 10:15:00 EST');
     expect(content.vehicle_rolling_time).toBe('04/10/2026 08:00:00 EST');
-    expect(content.service_type).toBe(' ');
+    expect(content.service_type).toBe('BRAKES-MAJOR / AIR SYSTEM');
+    expect(content.driver_phone).toBe('N/A');
+    expect(content.dealer_name).toBe('Contact Michelin ONCall for information');
     expect(content.description).toBe('SCR system error');
     expect(content.repair_notes).toBe('Cleared the fault code');
     expect(content).not.toHaveProperty('notes');
@@ -189,6 +192,17 @@ describe('MechanicalEmailService delivery', () => {
       'sent',
       10080,
     );
+  });
+
+  test('uses driver phone and provider name when the case has them', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
+    mechanicalCaseData.get.mockResolvedValue({ ...enrichedCase, DriverPhone: '555-0100', ServiceProvider: 'Acme Truck Repair' });
+
+    await new MechanicalEmailService(app).process(rollingEvent);
+
+    const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
+    expect(content.driver_phone).toBe('555-0100');
+    expect(content.dealer_name).toBe('Acme Truck Repair');
   });
 
   test('releases a recipient lock when notification delivery fails', async () => {
