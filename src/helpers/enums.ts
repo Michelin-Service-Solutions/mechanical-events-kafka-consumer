@@ -15,11 +15,18 @@ export interface MechanicalCaseRecord {
     ServiceDateTime?: string | null;
 }
 
+// DMS sends 1900-01-01 instead of null for empty dates.
+export function isValidCaseDate(input?: string | null): boolean {
+    if (!input) return false;
+    const time = Date.parse(input);
+    return !Number.isNaN(time) && new Date(time).getUTCFullYear() >= 2000;
+}
+
 export function getMechanicalCaseStatus(caseRecord: MechanicalCaseRecord): MechanicalCaseStatus {
     if (caseRecord.PaidInFull === "Yes") return MechanicalCaseStatus.Closed;
-    if (caseRecord.WorkCompleteDate) return MechanicalCaseStatus.Rolling;
-    if (caseRecord.RepairStarted) return MechanicalCaseStatus.Arrived;
-    if (caseRecord.EstimatedVendorArrival) return MechanicalCaseStatus.EnRoute;
-    if (caseRecord.ServiceDateTime) return MechanicalCaseStatus.Dispatched;
+    if (isValidCaseDate(caseRecord.WorkCompleteDate)) return MechanicalCaseStatus.Rolling;
+    if (isValidCaseDate(caseRecord.RepairStarted)) return MechanicalCaseStatus.Arrived;
+    if (isValidCaseDate(caseRecord.EstimatedVendorArrival)) return MechanicalCaseStatus.EnRoute;
+    if (isValidCaseDate(caseRecord.ServiceDateTime)) return MechanicalCaseStatus.Dispatched;
     return MechanicalCaseStatus.New;
 }

@@ -193,6 +193,13 @@ describe('MechanicalEmailService delivery', () => {
     expect(setIfAbsent).not.toHaveBeenCalled();
   });
 
+  test('does not send when WorkCompleteDate is the DMS placeholder date', async () => {
+    await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', WorkCompleteDate: '1900-01-01T04:00:00.000Z' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
   test('uses the same delivery key when WorkCompleteDate is edited', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
     const service = new MechanicalEmailService(app);

@@ -34,8 +34,7 @@ async function sendToQueue(dmsMessage: DMSMessage): Promise<any> {
 export class MessageHandlerErs {
 
     private static async processRollingCase(data: DMSMessage['data'], logs: string[]): Promise<void> {
-        if (data.status !== MechanicalCaseStatus.Rolling
-            && getMechanicalCaseStatus(data) !== MechanicalCaseStatus.Rolling) {
+        if (getMechanicalCaseStatus(data) !== MechanicalCaseStatus.Rolling) {
             logs.push('Mechanical case is not Vehicle Rolling.');
             return;
         }

@@ -185,9 +185,7 @@ export class MechanicalEmailService {
   constructor(private readonly app: Application) {}
 
   async process(record: FnaCaseRecord): Promise<void> {
-    if (record.PaidInFull === 'Yes') return;
-    if (record.status !== MechanicalCaseStatus.Rolling
-      && getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
+    if (getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
     const contacts = await this.findContacts(record.ShipTo, record.BillTo);
     if (!contacts.length) return;
