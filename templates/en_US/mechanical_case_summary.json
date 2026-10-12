@@ -3,7 +3,7 @@
   "name": "MechanicalCaseSummary",
   "application": "michelin-oncall",
   "language": "en_US",
-  "subject": "ONCall Summary & Feedback",
+  "subject": "ONCall Summary & Feedback for Event {{case_number}}",
   "text": "mechanical_case_summary",
   "json": {
     "notification_type": "mechanical_case_summary",

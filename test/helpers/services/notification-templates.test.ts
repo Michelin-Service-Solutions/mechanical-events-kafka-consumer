@@ -19,7 +19,7 @@ describe('mechanical_case_summary template', () => {
     }
     expect(template.html).not.toMatch(/Equipment Type|Tire Position|Tire Failure|<p><br><\/p>/);
     expect(template.html).toMatch(/<p>Thank you,<\/p><p>Michelin ONCall<\/p>$/);
-    expect(template.subject).not.toContain('{{');
+    expect(template.subject).toBe('ONCall Summary & Feedback for Event {{case_number}}');
   });
 });
 

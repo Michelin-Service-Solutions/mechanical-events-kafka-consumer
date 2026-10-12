@@ -108,15 +108,16 @@ describe('getEligibleMechanicalRecipients', () => {
     ]);
   });
 
-  test('builds an English notification request with subscription CC addresses', () => {
-    expect(buildMechanicalEmailNotificationRequest({
+  test('builds an English notification request with subscription CC addresses in To', () => {
+    const request = buildMechanicalEmailNotificationRequest({
       email: 'recipient@example.com',
       name: 'Recipient',
       ccEmails: ['copy@example.com'],
-    }, { case_number: 'M123' })).toMatchObject({
+    }, { case_number: 'M123' });
+    expect(request).not.toHaveProperty('email_cc');
+    expect(request).toMatchObject({
       notifiable_id: 'M123',
-      email_to: ['recipient@example.com'],
-      email_cc: ['copy@example.com'],
+      email_to: ['recipient@example.com', 'copy@example.com'],
       language: 'en_US',
       subject: 'ONCall Summary & Feedback for Event M123',
     });
@@ -179,10 +180,34 @@ describe('MechanicalEmailService delivery', () => {
     expect(content).not.toHaveProperty('notes');
     expect(content).not.toHaveProperty('type');
     expect(setIfAbsent).toHaveBeenCalledWith(
-      createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
       'sent',
-      10080,
+      86400,
     );
+  });
+
+  test('does not send for paid cases even when status is rolling', async () => {
+    await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', PaidInFull: 'Yes' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
+  test('does not send when WorkCompleteDate is the DMS placeholder date', async () => {
+    await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', WorkCompleteDate: '1900-01-01T04:00:00.000Z' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
+  test('uses the same delivery key when WorkCompleteDate is edited', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
+    const service = new MechanicalEmailService(app);
+
+    await service.process(rollingCase);
+    await service.process({ ...rollingCase, WorkCompleteDate: '2026-04-10T12:15:00.000Z' });
+
+    expect(setIfAbsent.mock.calls[0][0]).toBe(setIfAbsent.mock.calls[1][0]);
   });
 
   test('uses driver phone and provider name when the case has them', async () => {
@@ -201,7 +226,7 @@ describe('MechanicalEmailService delivery', () => {
     await expect(service.process(rollingCase)).rejects.toThrow('Notification API failed');
 
     expect(removeLock).toHaveBeenCalledWith(
-      createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
     );
   });
 });

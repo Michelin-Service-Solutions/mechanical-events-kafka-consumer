@@ -32,7 +32,6 @@ export interface MechanicalEmailRecipient {
 export interface MechanicalEmailNotificationRequest {
   notifiable_id: string;
   email_to: string[];
-  email_cc?: string[];
   notifiable_type: string;
   application: string;
   template_id: string;
@@ -95,14 +94,11 @@ const normalizeEmail = (email?: string): string => email?.replace(/[\[\]]/g, '')
 
 const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const idempotencyExpirationInMinutes = 7 * 24 * 60;
+// Cases can stay open in billing for weeks after rolling; later updates must not resend.
+const idempotencyExpirationInMinutes = 60 * 24 * 60;
 
-export function createMechanicalEmailDeliveryKey(
-  caseNumber: string,
-  rollingTimestamp: string,
-  recipientEmail: string,
-): string {
-  return `mechanical-email:${encodeURIComponent(caseNumber)}:${encodeURIComponent(rollingTimestamp)}:${recipientEmail}`;
+export function createMechanicalEmailDeliveryKey(caseNumber: string, recipientEmail: string): string {
+  return `mechanical-email:${encodeURIComponent(caseNumber)}:${recipientEmail.toLowerCase()}`;
 }
 
 export function extractCcEmails(subscription: NotificationSubscription): string[] {
@@ -174,8 +170,8 @@ export function buildMechanicalEmailNotificationRequest(
 ): MechanicalEmailNotificationRequest {
   return {
     notifiable_id: content.case_number,
-    email_to: [recipient.email],
-    ...(recipient.ccEmails.length ? { email_cc: recipient.ccEmails } : {}),
+    // Notification API /from-template drops email_cc, so CC contacts go in To until it is fixed.
+    email_to: [recipient.email, ...recipient.ccEmails],
     notifiable_type: 'email',
     application: 'michelin-oncall',
     template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
@@ -189,8 +185,7 @@ export class MechanicalEmailService {
   constructor(private readonly app: Application) {}
 
   async process(record: FnaCaseRecord): Promise<void> {
-    if (record.status !== MechanicalCaseStatus.Rolling
-      && getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
+    if (getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
     const contacts = await this.findContacts(record.ShipTo, record.BillTo);
     if (!contacts.length) return;
@@ -220,10 +215,8 @@ export class MechanicalEmailService {
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;
-    // Raw value keeps keys stable regardless of display formatting.
-    const rollingTimestamp = value(record.WorkCompleteDate);
     for (const recipient of contacts) {
-      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, rollingTimestamp, recipient.email);
+      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, recipient.email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);
       if (!acquiredLock) {
         console.log(JSON.stringify({ mechanicalEmail: 'skipped_duplicate', caseNumber, idempotencyKey }));
@@ -248,7 +241,6 @@ export class MechanicalEmailService {
           mechanicalEmail: 'sent',
           caseNumber,
           emailTo: requestBody.email_to,
-          emailCc: requestBody.email_cc ?? [],
           templateId: requestBody.template_id,
           status: response.status,
           idempotencyKey,
