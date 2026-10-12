@@ -185,6 +185,7 @@ export class MechanicalEmailService {
   constructor(private readonly app: Application) {}
 
   async process(record: FnaCaseRecord): Promise<void> {
+    if (record.PaidInFull === 'Yes') return;
     if (record.status !== MechanicalCaseStatus.Rolling
       && getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 

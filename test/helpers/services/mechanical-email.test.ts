@@ -186,6 +186,13 @@ describe('MechanicalEmailService delivery', () => {
     );
   });
 
+  test('does not send for paid cases even when status is rolling', async () => {
+    await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', PaidInFull: 'Yes' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
   test('uses the same delivery key when WorkCompleteDate is edited', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
     const service = new MechanicalEmailService(app);
