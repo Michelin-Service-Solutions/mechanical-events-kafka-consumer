@@ -1,5 +1,5 @@
 import type { Application } from '../../declarations';
-import { getMechanicalCaseStatus, isValidCaseDate, MechanicalCaseRecord, MechanicalCaseStatus } from '../enums';
+import { getMechanicalCaseStatus, MechanicalCaseRecord, MechanicalCaseStatus } from '../enums';
 import { redisClientPath } from '../../redis';
 import { elasticSearchClientPath } from './elasticsearch';
 
@@ -73,8 +73,8 @@ export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information
 export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
 
 export function formatEasternTime(input?: string | null): string {
-  if (!isValidCaseDate(input)) return ' ';
-  const date = new Date(input as string);
+  const date = input ? new Date(input) : undefined;
+  if (!date || Number.isNaN(date.getTime())) return ' ';
   const formatted = date.toLocaleString('en-US', {
     timeZone: 'America/New_York',
     year: 'numeric',

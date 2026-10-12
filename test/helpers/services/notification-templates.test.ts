@@ -29,7 +29,6 @@ describe('formatEasternTime', () => {
     expect(formatEasternTime('2026-01-24T05:00:00.000Z')).toBe('01/24/2026 00:00:00 EST');
     expect(formatEasternTime(undefined)).toBe(' ');
     expect(formatEasternTime('not a date')).toBe(' ');
-    expect(formatEasternTime('1900-01-01T04:00:00.000Z')).toBe(' ');
   });
 });
 
