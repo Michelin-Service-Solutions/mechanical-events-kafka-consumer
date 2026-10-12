@@ -108,15 +108,16 @@ describe('getEligibleMechanicalRecipients', () => {
     ]);
   });
 
-  test('builds an English notification request with subscription CC addresses', () => {
-    expect(buildMechanicalEmailNotificationRequest({
+  test('builds an English notification request with subscription CC addresses in To', () => {
+    const request = buildMechanicalEmailNotificationRequest({
       email: 'recipient@example.com',
       name: 'Recipient',
       ccEmails: ['copy@example.com'],
-    }, { case_number: 'M123' })).toMatchObject({
+    }, { case_number: 'M123' });
+    expect(request).not.toHaveProperty('email_cc');
+    expect(request).toMatchObject({
       notifiable_id: 'M123',
-      email_to: ['recipient@example.com'],
-      email_cc: ['copy@example.com'],
+      email_to: ['recipient@example.com', 'copy@example.com'],
       language: 'en_US',
       subject: 'ONCall Summary & Feedback for Event M123',
     });

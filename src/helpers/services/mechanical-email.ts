@@ -32,7 +32,6 @@ export interface MechanicalEmailRecipient {
 export interface MechanicalEmailNotificationRequest {
   notifiable_id: string;
   email_to: string[];
-  email_cc?: string[];
   notifiable_type: string;
   application: string;
   template_id: string;
@@ -174,8 +173,8 @@ export function buildMechanicalEmailNotificationRequest(
 ): MechanicalEmailNotificationRequest {
   return {
     notifiable_id: content.case_number,
-    email_to: [recipient.email],
-    ...(recipient.ccEmails.length ? { email_cc: recipient.ccEmails } : {}),
+    // Notification API /from-template drops email_cc, so CC contacts go in To until it is fixed.
+    email_to: [recipient.email, ...recipient.ccEmails],
     notifiable_type: 'email',
     application: 'michelin-oncall',
     template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
@@ -248,7 +247,6 @@ export class MechanicalEmailService {
           mechanicalEmail: 'sent',
           caseNumber,
           emailTo: requestBody.email_to,
-          emailCc: requestBody.email_cc ?? [],
           templateId: requestBody.template_id,
           status: response.status,
           idempotencyKey,
