@@ -94,14 +94,11 @@ const normalizeEmail = (email?: string): string => email?.replace(/[\[\]]/g, '')
 
 const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const idempotencyExpirationInMinutes = 7 * 24 * 60;
+// Cases can stay open in billing for weeks after rolling; later updates must not resend.
+const idempotencyExpirationInMinutes = 60 * 24 * 60;
 
-export function createMechanicalEmailDeliveryKey(
-  caseNumber: string,
-  rollingTimestamp: string,
-  recipientEmail: string,
-): string {
-  return `mechanical-email:${encodeURIComponent(caseNumber)}:${encodeURIComponent(rollingTimestamp)}:${recipientEmail}`;
+export function createMechanicalEmailDeliveryKey(caseNumber: string, recipientEmail: string): string {
+  return `mechanical-email:${encodeURIComponent(caseNumber)}:${recipientEmail.toLowerCase()}`;
 }
 
 export function extractCcEmails(subscription: NotificationSubscription): string[] {
@@ -219,10 +216,8 @@ export class MechanicalEmailService {
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;
-    // Raw value keeps keys stable regardless of display formatting.
-    const rollingTimestamp = value(record.WorkCompleteDate);
     for (const recipient of contacts) {
-      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, rollingTimestamp, recipient.email);
+      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, recipient.email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);
       if (!acquiredLock) {
         console.log(JSON.stringify({ mechanicalEmail: 'skipped_duplicate', caseNumber, idempotencyKey }));

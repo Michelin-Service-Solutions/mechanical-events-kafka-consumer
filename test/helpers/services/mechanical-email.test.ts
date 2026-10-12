@@ -180,10 +180,20 @@ describe('MechanicalEmailService delivery', () => {
     expect(content).not.toHaveProperty('notes');
     expect(content).not.toHaveProperty('type');
     expect(setIfAbsent).toHaveBeenCalledWith(
-      createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
       'sent',
-      10080,
+      86400,
     );
+  });
+
+  test('uses the same delivery key when WorkCompleteDate is edited', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
+    const service = new MechanicalEmailService(app);
+
+    await service.process(rollingCase);
+    await service.process({ ...rollingCase, WorkCompleteDate: '2026-04-10T12:15:00.000Z' });
+
+    expect(setIfAbsent.mock.calls[0][0]).toBe(setIfAbsent.mock.calls[1][0]);
   });
 
   test('uses driver phone and provider name when the case has them', async () => {
@@ -202,7 +212,7 @@ describe('MechanicalEmailService delivery', () => {
     await expect(service.process(rollingCase)).rejects.toThrow('Notification API failed');
 
     expect(removeLock).toHaveBeenCalledWith(
-      createMechanicalEmailDeliveryKey('M123', '2026-04-10T12:00:00.000Z', 'test.recipient@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
     );
   });
 });
