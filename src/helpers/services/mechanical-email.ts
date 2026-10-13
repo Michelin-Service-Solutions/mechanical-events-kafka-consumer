@@ -187,6 +187,16 @@ export class MechanicalEmailService {
   async process(record: FnaCaseRecord): Promise<void> {
     if (getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
+    const rolledAt = Date.parse(record.WorkCompleteDate as string);
+    const startDate = this.app.get('emailStartDate');
+    const skipped = startDate && rolledAt < Date.parse(startDate) ? 'skipped_before_start_date'
+      : Date.now() - rolledAt > this.app.get('emailMaxDelayHours') * 60 * 60 * 1000 ? 'skipped_too_old'
+        : undefined;
+    if (skipped) {
+      console.log(JSON.stringify({ mechanicalEmail: skipped, caseNumber: record.EventNumber, workCompleteDate: record.WorkCompleteDate }));
+      return;
+    }
+
     const contacts = await this.findContacts(record.ShipTo, record.BillTo);
     if (!contacts.length) return;
 

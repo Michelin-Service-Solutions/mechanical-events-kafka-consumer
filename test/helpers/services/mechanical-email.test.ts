@@ -145,12 +145,15 @@ describe('MechanicalEmailService delivery', () => {
       redisClient: { setIfAbsent, delete: removeLock },
       dryRun: false,
       surveyUrl: 'https://survey.example.test',
+      emailMaxDelayHours: 24,
+      emailStartDate: '2026-04-10T11:30:00Z',
       emailNotificationUrl: 'https://notifications.example.test',
       appToken: 'token',
     })[key],
   } as unknown as Application;
 
   beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-10T13:00:00.000Z'));
     setIfAbsent.mockReset().mockResolvedValue(true);
     removeLock.mockReset().mockResolvedValue(undefined);
     fetchMock.mockReset();
@@ -191,6 +194,27 @@ describe('MechanicalEmailService delivery', () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
+  test('does not send when the vehicle rolled more than 24 hours ago', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-11T12:01:00.000Z'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    await new MechanicalEmailService(app).process(rollingCase);
+
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_too_old"'));
+    expect(elasticsearch.search).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  test('does not send when the vehicle rolled before the go-live date', async () => {
+    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:00:00.000Z' });
+
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_before_start_date"'));
+    expect(elasticsearch.search).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    log.mockRestore();
   });
 
   test('does not send when WorkCompleteDate is the DMS placeholder date', async () => {

@@ -37,5 +37,6 @@
     "__name": "DRY_RUN",
     "__format": "boolean"
   },
-  "surveyUrl": "SURVEY_URL"
+  "surveyUrl": "SURVEY_URL",
+  "emailStartDate": "EMAIL_START_DATE"
 }
