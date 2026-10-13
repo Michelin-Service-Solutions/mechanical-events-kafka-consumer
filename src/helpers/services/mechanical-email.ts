@@ -165,13 +165,12 @@ export function mergeMechanicalRecipients(recipients: MechanicalEmailRecipient[]
 }
 
 export function buildMechanicalEmailNotificationRequest(
-  recipient: MechanicalEmailRecipient,
+  email: string,
   content: Record<string, string>,
 ): MechanicalEmailNotificationRequest {
   return {
     notifiable_id: content.case_number,
-    // Notification API /from-template drops email_cc, so CC contacts go in To until it is fixed.
-    email_to: [recipient.email, ...recipient.ccEmails],
+    email_to: [email],
     notifiable_type: 'email',
     application: 'michelin-oncall',
     template_id: MECHANICAL_EMAIL_TEMPLATE_ID,
@@ -217,23 +216,26 @@ export class MechanicalEmailService {
       survey_url: this.app.get('surveyUrl'),
     };
 
+    // One email per address: Notification API drops email_cc, and SES rejects a whole message if any recipient is refused.
+    const addresses = [...new Set(contacts.flatMap((contact) => [contact.email, ...contact.ccEmails]))];
+
     if (this.app.get('dryRun')) {
-      const requestBodies = contacts.map((contact) => buildMechanicalEmailNotificationRequest(contact, content));
+      const requestBodies = addresses.map((email) => buildMechanicalEmailNotificationRequest(email, content));
       console.log(JSON.stringify({ dryRun: true, requestBodies }));
       return;
     }
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;
-    for (const recipient of contacts) {
-      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, recipient.email);
+    for (const email of addresses) {
+      const idempotencyKey = createMechanicalEmailDeliveryKey(caseNumber, email);
       const acquiredLock = await redis.setIfAbsent(idempotencyKey, 'sent', idempotencyExpirationInMinutes);
       if (!acquiredLock) {
         console.log(JSON.stringify({ mechanicalEmail: 'skipped_duplicate', caseNumber, idempotencyKey }));
         continue;
       }
 
-      const requestBody = buildMechanicalEmailNotificationRequest(recipient, content);
+      const requestBody = buildMechanicalEmailNotificationRequest(email, content);
       try {
         const response = await fetch(`${this.app.get('emailNotificationUrl')}/from-template`, {
         method: 'POST',
