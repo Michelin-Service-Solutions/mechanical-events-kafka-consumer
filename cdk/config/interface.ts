@@ -31,4 +31,6 @@ export interface MyEnv extends ECSPipelineEnv {
   readonly elasticSearchUrl: string;
   readonly emailNotificationUrl: string;
   readonly dryRun: boolean;
+  // Go-live time (ISO 8601); cases that rolled before it are never emailed. Required when dryRun is false.
+  readonly emailStartDate?: string;
 }

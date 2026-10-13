@@ -53,6 +53,10 @@ export class MainStack extends Stack {
 
   createECSTaskDefinitionEnv(): { [key: string]: string } {
 
+    if (!this.myEnv.dryRun && Number.isNaN(Date.parse(this.myEnv.emailStartDate ?? ''))) {
+      throw new Error(`emailStartDate must be set to the go-live time before dryRun is turned off (${this.myEnv.environment})`);
+    }
+
     const retryQueueURL = Fn.importValue(`${this.myEnv.appName}-retryQueue-${this.myEnv.environment}-URL`);
     const dlqQueueURL = Fn.importValue(`${this.myEnv.appName}-dlqQueue-${this.myEnv.environment}-URL`);
 
@@ -63,6 +67,7 @@ export class MainStack extends Stack {
       ELASTICSEARCH_URL: this.myEnv.elasticSearchUrl,
       EMAIL_NOTIFICATION_URL: this.myEnv.emailNotificationUrl,
       DRY_RUN: String(this.myEnv.dryRun),
+      ...(this.myEnv.emailStartDate ? { EMAIL_START_DATE: this.myEnv.emailStartDate } : {}),
 
       KAFKA_CONSUMER_GROUP: `${this.myEnv.environment}.${this.myEnv.appName}`,
 

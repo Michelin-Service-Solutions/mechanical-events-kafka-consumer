@@ -28,5 +28,6 @@
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
   "dryRun": false,
+  "emailMaxDelayHours": 24,
   "surveyUrl": "https://michelinvoc.eu.qualtrics.com/jfe/form/SV_d7hYysNfhzRIJf0"
 }

@@ -37,6 +37,8 @@ export const configurationSchema = Type.Intersect([
     emailNotificationUrl: Type.String(),
     dryRun: Type.Boolean(),
     surveyUrl: Type.String(),
+    emailMaxDelayHours: Type.Number(),
+    emailStartDate: Type.Optional(Type.String()),
   })
 ])
 

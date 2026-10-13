@@ -108,16 +108,12 @@ describe('getEligibleMechanicalRecipients', () => {
     ]);
   });
 
-  test('builds an English notification request with subscription CC addresses in To', () => {
-    const request = buildMechanicalEmailNotificationRequest({
-      email: 'recipient@example.com',
-      name: 'Recipient',
-      ccEmails: ['copy@example.com'],
-    }, { case_number: 'M123' });
+  test('builds an English notification request for a single address', () => {
+    const request = buildMechanicalEmailNotificationRequest('recipient@example.com', { case_number: 'M123' });
     expect(request).not.toHaveProperty('email_cc');
     expect(request).toMatchObject({
       notifiable_id: 'M123',
-      email_to: ['recipient@example.com', 'copy@example.com'],
+      email_to: ['recipient@example.com'],
       language: 'en_US',
       subject: 'ONCall Summary & Feedback for Event M123',
     });
@@ -145,12 +141,15 @@ describe('MechanicalEmailService delivery', () => {
       redisClient: { setIfAbsent, delete: removeLock },
       dryRun: false,
       surveyUrl: 'https://survey.example.test',
+      emailMaxDelayHours: 24,
+      emailStartDate: '2026-04-10T11:30:00Z',
       emailNotificationUrl: 'https://notifications.example.test',
       appToken: 'token',
     })[key],
   } as unknown as Application;
 
   beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-10T13:00:00.000Z'));
     setIfAbsent.mockReset().mockResolvedValue(true);
     removeLock.mockReset().mockResolvedValue(undefined);
     fetchMock.mockReset();
@@ -186,11 +185,57 @@ describe('MechanicalEmailService delivery', () => {
     );
   });
 
+  test('sends a separate email to the primary and each CC address', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    elasticsearch.search.mockResolvedValue({ body: { hits: { hits: [{ _source: {
+      ...subscribedContact,
+      notification_subscription: [{ event: 'mechanical_ers', type: 'case_summary', method: ['email'], cc_emails: 'cc.one@example.com; cc.two@example.com' }],
+    } }] } } });
+
+    await new MechanicalEmailService(app).process(rollingCase);
+
+    const recipients = fetchMock.mock.calls.map((call: any) => JSON.parse(call[1].body).email_to);
+    expect(recipients).toEqual([['test.recipient@example.com'], ['cc.one@example.com'], ['cc.two@example.com']]);
+    expect(setIfAbsent.mock.calls.map((call: any) => call[0])).toEqual([
+      createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'cc.one@example.com'),
+      createMechanicalEmailDeliveryKey('M123', 'cc.two@example.com'),
+    ]);
+  });
+
+  test('sends when the vehicle rolled exactly at the go-live time', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:30:00.000Z' });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   test('does not send for paid cases even when status is rolling', async () => {
     await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', PaidInFull: 'Yes' });
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(setIfAbsent).not.toHaveBeenCalled();
+  });
+
+  test('does not send when the vehicle rolled more than 24 hours ago', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-11T12:01:00.000Z'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    await new MechanicalEmailService(app).process(rollingCase);
+
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_too_old"'));
+    expect(elasticsearch.search).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  test('does not send when the vehicle rolled before the go-live date', async () => {
+    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:00:00.000Z' });
+
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_before_start_date"'));
+    expect(elasticsearch.search).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    log.mockRestore();
   });
 
   test('does not send when WorkCompleteDate is the DMS placeholder date', async () => {
