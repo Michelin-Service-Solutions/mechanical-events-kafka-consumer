@@ -27,8 +27,8 @@ describe('formatEasternTime', () => {
   test('formats UTC timestamps in Eastern time like the tire feedback email', () => {
     expect(formatEasternTime('2026-10-05T12:00:00.000Z')).toBe('10/05/2026 08:00:00 EST');
     expect(formatEasternTime('2026-01-24T05:00:00.000Z')).toBe('01/24/2026 00:00:00 EST');
-    expect(formatEasternTime(undefined)).toBe(' ');
-    expect(formatEasternTime('not a date')).toBe(' ');
+    expect(formatEasternTime(undefined)).toBe('N/A');
+    expect(formatEasternTime('not a date')).toBe('N/A');
   });
 });
 

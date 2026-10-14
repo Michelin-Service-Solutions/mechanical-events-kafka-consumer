@@ -203,6 +203,36 @@ describe('MechanicalEmailService delivery', () => {
     ]);
   });
 
+  test('shows N/A for empty, null, or whitespace-only fields', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    await new MechanicalEmailService(app).process({
+      ...rollingCase,
+      Driver: '  ',
+      InitialTCDescription: undefined,
+      CustomerPoNumber: '',
+      Unit: null as unknown as string,
+      Complaint: ' ',
+      Correction: undefined,
+      RepairStarted: undefined,
+    });
+
+    const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
+    for (const field of ['driver_name', 'service_type', 'po_number', 'unit_number', 'description', 'repair_notes', 'arrival_time', 'event_address']) {
+      expect(content[field]).toBe('N/A');
+    }
+  });
+
+  test('shows Description and Repair Notes exactly as received', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    const complaint = '(CALLER: BEN; PHONE: +15408013183)  (UNIT NUMBER: 179354) BRAKES DO NOT RELEASE';
+    const correction = 'Correction: complete ;';
+    await new MechanicalEmailService(app).process({ ...rollingCase, Complaint: complaint, Correction: correction });
+
+    const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
+    expect(content.description).toBe(complaint);
+    expect(content.repair_notes).toBe(correction);
+  });
+
   test('sends when the vehicle rolled exactly at the go-live time', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
     await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:30:00.000Z' });
