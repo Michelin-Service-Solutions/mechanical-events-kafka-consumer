@@ -65,16 +65,24 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
 
 const value = (input: unknown): string => input == null || input === '' ? ' ' : String(input);
 
-const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input);
+const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input).trim();
 
-export const DEFAULT_DRIVER_PHONE = 'N/A';
+export const NOT_AVAILABLE = 'N/A';
+export const DEFAULT_DRIVER_PHONE = NOT_AVAILABLE;
 export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
+
+const display = (input: unknown): string => valueOr(input, NOT_AVAILABLE);
+
+// DMS notes often repeat a "Correction:" label and end with padding plus ";".
+export function formatRepairNotes(input: unknown): string {
+  return display(String(input ?? '').replace(/\s+/g, ' ').trim().replace(/^correction:\s*/i, '').replace(/[\s;]+$/, ''));
+}
 
 export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
 
 export function formatEasternTime(input?: string | null): string {
   const date = input ? new Date(input) : undefined;
-  if (!date || Number.isNaN(date.getTime())) return ' ';
+  if (!date || Number.isNaN(date.getTime())) return NOT_AVAILABLE;
   const formatted = date.toLocaleString('en-US', {
     timeZone: 'America/New_York',
     year: 'numeric',
@@ -201,18 +209,19 @@ export class MechanicalEmailService {
 
     const content = {
       fleet_name: value(record.CustomerName),
-      driver_name: value(record.Driver),
+      driver_name: display(record.Driver),
       driver_phone: valueOr(record.DriverPhone ?? record.ContactPhone, DEFAULT_DRIVER_PHONE),
       dealer_name: valueOr(record.ServiceProvider, DEFAULT_SERVICE_PROVIDER),
-      service_type: value(record.InitialTCDescription),
+      service_type: display(record.InitialTCDescription),
       arrival_time: formatEasternTime(record.RepairStarted),
       vehicle_rolling_time: formatEasternTime(record.WorkCompleteDate),
       case_number: value(record.EventNumber ?? record.case_number),
-      po_number: value(record.CustomerPoNumber),
-      event_address: [record.Event_Address, record.Event_City, record.Event_State, record.Event_Country].filter(Boolean).join(', '),
-      unit_number: value(record.Unit),
-      description: value(record.Complaint),
-      repair_notes: value(record.Correction),
+      po_number: display(record.CustomerPoNumber),
+      event_address: display([record.Event_Address, record.Event_City, record.Event_State, record.Event_Country]
+        .map((part) => part?.trim()).filter(Boolean).join(', ')),
+      unit_number: display(record.Unit),
+      description: display(record.Complaint),
+      repair_notes: formatRepairNotes(record.Correction),
       survey_url: this.app.get('surveyUrl'),
     };
 
