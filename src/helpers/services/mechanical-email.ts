@@ -65,18 +65,13 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
 
 const value = (input: unknown): string => input == null || input === '' ? ' ' : String(input);
 
-const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input).trim();
+const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input);
 
 export const NOT_AVAILABLE = 'N/A';
 export const DEFAULT_DRIVER_PHONE = NOT_AVAILABLE;
 export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
 
 const display = (input: unknown): string => valueOr(input, NOT_AVAILABLE);
-
-// DMS notes often repeat a "Correction:" label and end with padding plus ";".
-export function formatRepairNotes(input: unknown): string {
-  return display(String(input ?? '').replace(/\s+/g, ' ').trim().replace(/^correction:\s*/i, '').replace(/[\s;]+$/, ''));
-}
 
 export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
 
@@ -221,7 +216,7 @@ export class MechanicalEmailService {
         .map((part) => part?.trim()).filter(Boolean).join(', ')),
       unit_number: display(record.Unit),
       description: display(record.Complaint),
-      repair_notes: formatRepairNotes(record.Correction),
+      repair_notes: display(record.Correction),
       survey_url: this.app.get('surveyUrl'),
     };
 

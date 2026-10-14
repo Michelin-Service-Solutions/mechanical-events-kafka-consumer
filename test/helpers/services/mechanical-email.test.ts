@@ -4,7 +4,6 @@ import {
   ContactRecord,
   createMechanicalEmailDeliveryKey,
   extractCcEmails,
-  formatRepairNotes,
   getEligibleMechanicalRecipients,
   MechanicalEmailService,
   mergeMechanicalRecipients,
@@ -32,25 +31,6 @@ describe('Mechanical Kafka status mapping', () => {
       .toBe(MechanicalCaseStatus.Arrived);
     expect(getMechanicalCaseStatus({ EstimatedVendorArrival: '2026-08-29T17:52:00.000Z' }))
       .toBe(MechanicalCaseStatus.EnRoute);
-  });
-});
-
-describe('formatRepairNotes', () => {
-  test('drops the leading Correction label and trailing padding', () => {
-    expect(formatRepairNotes('Correction: complete ;')).toBe('complete');
-    expect(formatRepairNotes('Correction: good                                    ;')).toBe('good');
-    expect(formatRepairNotes('CORRECTION: BYPASSED RIGHT FRONT AIRBAG ON UNIT     ;')).toBe('BYPASSED RIGHT FRONT AIRBAG ON UNIT');
-  });
-
-  test('keeps the note text otherwise unchanged', () => {
-    expect(formatRepairNotes('SERVICE CALL OUT FOR BRAKES; SP ADVISED CORRECTION: RIGHT BRAKE CHAMBER IS LEAKING'))
-      .toBe('SERVICE CALL OUT FOR BRAKES; SP ADVISED CORRECTION: RIGHT BRAKE CHAMBER IS LEAKING');
-  });
-
-  test('shows N/A when there are no notes', () => {
-    expect(formatRepairNotes(null)).toBe('N/A');
-    expect(formatRepairNotes('   ')).toBe('N/A');
-    expect(formatRepairNotes('Correction: ;')).toBe('N/A');
   });
 });
 
@@ -240,6 +220,17 @@ describe('MechanicalEmailService delivery', () => {
     for (const field of ['driver_name', 'service_type', 'po_number', 'unit_number', 'description', 'repair_notes', 'arrival_time', 'event_address']) {
       expect(content[field]).toBe('N/A');
     }
+  });
+
+  test('shows Description and Repair Notes exactly as received', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    const complaint = '(CALLER: BEN; PHONE: +15408013183)  (UNIT NUMBER: 179354) BRAKES DO NOT RELEASE';
+    const correction = 'Correction: complete ;';
+    await new MechanicalEmailService(app).process({ ...rollingCase, Complaint: complaint, Correction: correction });
+
+    const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
+    expect(content.description).toBe(complaint);
+    expect(content.repair_notes).toBe(correction);
   });
 
   test('sends when the vehicle rolled exactly at the go-live time', async () => {
