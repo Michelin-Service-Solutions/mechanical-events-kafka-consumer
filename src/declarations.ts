@@ -22,5 +22,6 @@ export type HookContext<S = any> = FeathersHookContext<Application, S>
 declare module './declarations' {
   interface Configuration {
     mechanicalEmailService: import('./helpers/services/mechanical-email').MechanicalEmailService;
+    emailActivation: import('./helpers/services/email-activation').EmailActivation;
   }
 }

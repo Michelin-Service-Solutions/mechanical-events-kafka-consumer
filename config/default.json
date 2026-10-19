@@ -27,7 +27,7 @@
   "maxRetries": "MAX_RETRIES",
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
-  "dryRun": false,
   "emailMaxDelayHours": 24,
+  "emailActivationParameter": "/local/mechanical-events-kafka-consumer/email-activation-time",
   "surveyUrl": "https://michelinvoc.eu.qualtrics.com/jfe/form/SV_d7hYysNfhzRIJf0"
 }

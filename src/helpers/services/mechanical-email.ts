@@ -190,8 +190,8 @@ export class MechanicalEmailService {
     if (getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
     const rolledAt = Date.parse(record.WorkCompleteDate as string);
-    const startDate = this.app.get('emailStartDate');
-    const skipped = startDate && rolledAt < Date.parse(startDate) ? 'skipped_before_start_date'
+    const activationTime = await this.app.get('emailActivation').getTime();
+    const skipped = rolledAt < activationTime ? 'skipped_before_activation'
       : Date.now() - rolledAt > this.app.get('emailMaxDelayHours') * 60 * 60 * 1000 ? 'skipped_too_old'
         : undefined;
     if (skipped) {
@@ -222,12 +222,6 @@ export class MechanicalEmailService {
 
     // One email per address: Notification API drops email_cc, and SES rejects a whole message if any recipient is refused.
     const addresses = [...new Set(contacts.flatMap((contact) => [contact.email, ...contact.ccEmails]))];
-
-    if (this.app.get('dryRun')) {
-      const requestBodies = addresses.map((email) => buildMechanicalEmailNotificationRequest(email, content));
-      console.log(JSON.stringify({ dryRun: true, requestBodies }));
-      return;
-    }
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;

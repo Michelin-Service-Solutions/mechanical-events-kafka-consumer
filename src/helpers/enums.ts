@@ -4,11 +4,9 @@ export enum MechanicalCaseStatus {
     EnRoute = "en_route",
     Arrived = "arrived",
     Rolling = "rolling",
-    Closed = "closed",
 }
 
 export interface MechanicalCaseRecord {
-    PaidInFull?: string | null;
     WorkCompleteDate?: string | null;
     RepairStarted?: string | null;
     EstimatedVendorArrival?: string | null;
@@ -23,7 +21,6 @@ export function isValidCaseDate(input?: string | null): boolean {
 }
 
 export function getMechanicalCaseStatus(caseRecord: MechanicalCaseRecord): MechanicalCaseStatus {
-    if (caseRecord.PaidInFull === "Yes") return MechanicalCaseStatus.Closed;
     if (isValidCaseDate(caseRecord.WorkCompleteDate)) return MechanicalCaseStatus.Rolling;
     if (isValidCaseDate(caseRecord.RepairStarted)) return MechanicalCaseStatus.Arrived;
     if (isValidCaseDate(caseRecord.EstimatedVendorArrival)) return MechanicalCaseStatus.EnRoute;

@@ -45,6 +45,5 @@ export const environment: MyEnv = {
   appToken: '/central_prod/production/kafka_oncall_notifications/app_token',
   elasticSearchUrl: `https://apigateway.${env}.misp-solutions.com/elasticsearch/lambdaproxy`,
   emailNotificationUrl: `https://api.${env}.misp-solutions.com/notifications`,
-  dryRun: true,
 
 };
