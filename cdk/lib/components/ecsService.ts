@@ -1,5 +1,5 @@
 import { ListenerNextAvailablePriority } from "@michelin/cdk-listener-next-priority";
-import { Duration, Fn, RemovalPolicy } from "aws-cdk-lib";
+import { Duration, Fn, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { ISecurityGroup, ISubnet, IVpc, Peer, Port } from "aws-cdk-lib/aws-ec2";
 
 import { Cluster, Compatibility, ContainerImage, FargateService, ICluster, LogDriver, NetworkMode, TaskDefinition, Secret } from "aws-cdk-lib/aws-ecs";
@@ -115,6 +115,11 @@ const retryQueueARN = Fn.importValue(`${appName}-retryQueue-${envName}-ARN`);
           "sqs:ReceiveMessage",
           "sqs:DeleteMessage"
         ]
+      }),
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: [`arn:aws:ssm:${Stack.of(scope).region}:${Stack.of(scope).account}:parameter${ecsEnvironment.EMAIL_ACTIVATION_PARAMETER}`],
+        actions: ['ssm:GetParameter', 'ssm:PutParameter'],
       }),
       new PolicyStatement(
         {

@@ -33,10 +33,7 @@
   },
   "elasticSearchUrl": "ELASTICSEARCH_URL",
   "emailNotificationUrl": "EMAIL_NOTIFICATION_URL",
-  "dryRun": {
-    "__name": "DRY_RUN",
-    "__format": "boolean"
-  },
   "surveyUrl": "SURVEY_URL",
+  "emailActivationParameter": "EMAIL_ACTIVATION_PARAMETER",
   "emailStartDate": "EMAIL_START_DATE"
 }

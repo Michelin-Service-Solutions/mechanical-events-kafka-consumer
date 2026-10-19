@@ -97,8 +97,8 @@ const normalizeEmail = (email?: string): string => email?.replace(/[\[\]]/g, '')
 
 const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// Cases can stay open in billing for weeks after rolling; later updates must not resend.
-const idempotencyExpirationInMinutes = 60 * 24 * 60;
+// No expiry: with no age limit, any later update to a rolled case must never resend.
+const idempotencyExpirationInMinutes = 0;
 
 export function createMechanicalEmailDeliveryKey(caseNumber: string, recipientEmail: string): string {
   return `mechanical-email:${encodeURIComponent(caseNumber)}:${recipientEmail.toLowerCase()}`;
@@ -190,12 +190,9 @@ export class MechanicalEmailService {
     if (getMechanicalCaseStatus(record) !== MechanicalCaseStatus.Rolling) return;
 
     const rolledAt = Date.parse(record.WorkCompleteDate as string);
-    const startDate = this.app.get('emailStartDate');
-    const skipped = startDate && rolledAt < Date.parse(startDate) ? 'skipped_before_start_date'
-      : Date.now() - rolledAt > this.app.get('emailMaxDelayHours') * 60 * 60 * 1000 ? 'skipped_too_old'
-        : undefined;
-    if (skipped) {
-      console.log(JSON.stringify({ mechanicalEmail: skipped, caseNumber: record.EventNumber, workCompleteDate: record.WorkCompleteDate }));
+    const activationTime = await this.app.get('emailActivation').getTime();
+    if (rolledAt < activationTime) {
+      console.log(JSON.stringify({ mechanicalEmail: 'skipped_before_activation', caseNumber: record.EventNumber, workCompleteDate: record.WorkCompleteDate }));
       return;
     }
 
@@ -222,12 +219,6 @@ export class MechanicalEmailService {
 
     // One email per address: Notification API drops email_cc, and SES rejects a whole message if any recipient is refused.
     const addresses = [...new Set(contacts.flatMap((contact) => [contact.email, ...contact.ccEmails]))];
-
-    if (this.app.get('dryRun')) {
-      const requestBodies = addresses.map((email) => buildMechanicalEmailNotificationRequest(email, content));
-      console.log(JSON.stringify({ dryRun: true, requestBodies }));
-      return;
-    }
 
     const redis = this.app.get(redisClientPath);
     const caseNumber = content.case_number;

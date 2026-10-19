@@ -35,12 +35,12 @@ class RedisHelper {
     return await client.get(`${prefix ?? this.prefix}-${key}`);
   }
 
+  // expirationInMin <= 0 stores the key without expiry.
   public async setIfAbsent(key: string, value: any, expirationInMin: number = 10): Promise<boolean> {
     const client = await this.getClient();
-    const result = await client.set(`${this.prefix}-${key}`, value, {
-      EX: expirationInMin * 60,
-      NX: true,
-    });
+    const result = await client.set(`${this.prefix}-${key}`, value, expirationInMin > 0
+      ? { EX: expirationInMin * 60, NX: true }
+      : { NX: true });
     return result === 'OK';
   }
 

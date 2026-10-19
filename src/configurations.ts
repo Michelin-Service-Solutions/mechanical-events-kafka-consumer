@@ -9,6 +9,7 @@ import { SQSService } from './helpers/services/sqs-adapter';
 import { mechanicalEmailService } from './helpers/services/mechanical-email';
 import { elasticsearch } from './helpers/services/elasticsearch';
 import { notificationTemplates } from './helpers/services/notification-templates';
+import { emailActivation } from './helpers/services/email-activation';
 
 export function configure_after(app: Application): void {
   addHealthCheck(app);
@@ -16,6 +17,7 @@ export function configure_after(app: Application): void {
   app.configure(KafkaConsumerService);
   app.configure(SQSService);
   app.configure(elasticsearch);
+  emailActivation(app);
   mechanicalEmailService(app);
   notificationTemplates(app);
 }

@@ -139,10 +139,8 @@ describe('MechanicalEmailService delivery', () => {
     get: (key: string) => ({
       elasticSearchClient: elasticsearch,
       redisClient: { setIfAbsent, delete: removeLock },
-      dryRun: false,
       surveyUrl: 'https://survey.example.test',
-      emailMaxDelayHours: 24,
-      emailStartDate: '2026-04-10T11:30:00Z',
+      emailActivation: { getTime: async () => Date.parse('2026-04-10T11:30:00Z') },
       emailNotificationUrl: 'https://notifications.example.test',
       appToken: 'token',
     })[key],
@@ -181,7 +179,7 @@ describe('MechanicalEmailService delivery', () => {
     expect(setIfAbsent).toHaveBeenCalledWith(
       createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
       'sent',
-      86400,
+      0,
     );
   });
 
@@ -233,36 +231,34 @@ describe('MechanicalEmailService delivery', () => {
     expect(content.repair_notes).toBe(correction);
   });
 
-  test('sends when the vehicle rolled exactly at the go-live time', async () => {
+  test('sends when the vehicle rolled exactly at the activation time', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
     await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:30:00.000Z' });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  test('does not send for paid cases even when status is rolling', async () => {
-    await new MechanicalEmailService(app).process({ ...rollingCase, status: 'rolling', PaidInFull: 'Yes' });
+  test('sends for paid cases when the vehicle is rolling', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    const paidCase = { ...rollingCase, PaidInFull: 'Yes' };
+    await new MechanicalEmailService(app).process(paidCase);
 
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(setIfAbsent).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  test('does not send when the vehicle rolled more than 24 hours ago', async () => {
-    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-11T12:01:00.000Z'));
-    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+  test('sends regardless of how long ago the vehicle rolled after activation', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-12-31T12:00:00.000Z'));
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
     await new MechanicalEmailService(app).process(rollingCase);
 
-    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_too_old"'));
-    expect(elasticsearch.search).not.toHaveBeenCalled();
-    expect(fetchMock).not.toHaveBeenCalled();
-    log.mockRestore();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  test('does not send when the vehicle rolled before the go-live date', async () => {
+  test('does not send when the vehicle rolled before the activation time', async () => {
     const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     await new MechanicalEmailService(app).process({ ...rollingCase, WorkCompleteDate: '2026-04-10T11:00:00.000Z' });
 
-    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_before_start_date"'));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_before_activation"'));
     expect(elasticsearch.search).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
     log.mockRestore();
