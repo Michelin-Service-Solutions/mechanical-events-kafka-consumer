@@ -36,6 +36,7 @@ export const configurationSchema = Type.Intersect([
     elasticSearchUrl: Type.String(),
     emailNotificationUrl: Type.String(),
     surveyUrl: Type.String(),
+    emailMaxDelayHours: Type.Number(),
     emailActivationParameter: Type.String(),
     emailStartDate: Type.Optional(Type.String()),
   })

@@ -140,6 +140,7 @@ describe('MechanicalEmailService delivery', () => {
       elasticSearchClient: elasticsearch,
       redisClient: { setIfAbsent, delete: removeLock },
       surveyUrl: 'https://survey.example.test',
+      emailMaxDelayHours: 24,
       emailActivation: { getTime: async () => Date.parse('2026-04-10T11:30:00Z') },
       emailNotificationUrl: 'https://notifications.example.test',
       appToken: 'token',
@@ -179,7 +180,7 @@ describe('MechanicalEmailService delivery', () => {
     expect(setIfAbsent).toHaveBeenCalledWith(
       createMechanicalEmailDeliveryKey('M123', 'test.recipient@example.com'),
       'sent',
-      0,
+      86400,
     );
   });
 
@@ -246,12 +247,23 @@ describe('MechanicalEmailService delivery', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  test('sends regardless of how long ago the vehicle rolled after activation', async () => {
-    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-12-31T12:00:00.000Z'));
+  test('sends when the vehicle rolled just under 24 hours ago', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-11T11:59:00.000Z'));
     fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
     await new MechanicalEmailService(app).process(rollingCase);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not send when the vehicle rolled more than 24 hours ago', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-04-11T12:01:00.000Z'));
+    const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    await new MechanicalEmailService(app).process(rollingCase);
+
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mechanicalEmail":"skipped_too_old"'));
+    expect(elasticsearch.search).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    log.mockRestore();
   });
 
   test('does not send when the vehicle rolled before the activation time', async () => {

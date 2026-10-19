@@ -97,8 +97,8 @@ const normalizeEmail = (email?: string): string => email?.replace(/[\[\]]/g, '')
 
 const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// No expiry: with no age limit, any later update to a rolled case must never resend.
-const idempotencyExpirationInMinutes = 0;
+// Cases can stay open in billing for weeks after rolling; later updates must not resend.
+const idempotencyExpirationInMinutes = 60 * 24 * 60;
 
 export function createMechanicalEmailDeliveryKey(caseNumber: string, recipientEmail: string): string {
   return `mechanical-email:${encodeURIComponent(caseNumber)}:${recipientEmail.toLowerCase()}`;
@@ -191,8 +191,11 @@ export class MechanicalEmailService {
 
     const rolledAt = Date.parse(record.WorkCompleteDate as string);
     const activationTime = await this.app.get('emailActivation').getTime();
-    if (rolledAt < activationTime) {
-      console.log(JSON.stringify({ mechanicalEmail: 'skipped_before_activation', caseNumber: record.EventNumber, workCompleteDate: record.WorkCompleteDate }));
+    const skipped = rolledAt < activationTime ? 'skipped_before_activation'
+      : Date.now() - rolledAt > this.app.get('emailMaxDelayHours') * 60 * 60 * 1000 ? 'skipped_too_old'
+        : undefined;
+    if (skipped) {
+      console.log(JSON.stringify({ mechanicalEmail: skipped, caseNumber: record.EventNumber, workCompleteDate: record.WorkCompleteDate }));
       return;
     }
 
