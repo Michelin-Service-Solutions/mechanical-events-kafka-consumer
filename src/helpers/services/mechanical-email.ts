@@ -53,8 +53,6 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
   Event_Country?: string;
   Unit?: string;
   Driver?: string;
-  DriverPhone?: string;
-  ContactPhone?: string;
   ServiceProvider?: string;
   InitialTroubleCode?: string;
   InitialTCDescription?: string;
@@ -69,7 +67,6 @@ const value = (input: unknown): string => input == null || input === '' ? ' ' : 
 const valueOr = (input: unknown, fallback: string): string => input == null || String(input).trim() === '' ? fallback : String(input);
 
 export const NOT_AVAILABLE = 'N/A';
-export const DEFAULT_DRIVER_PHONE = NOT_AVAILABLE;
 export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
 
 const display = (input: unknown): string => valueOr(input, NOT_AVAILABLE);
@@ -212,7 +209,6 @@ export class MechanicalEmailService {
     const content = {
       fleet_name: value(record.CustomerName),
       driver_name: display(record.Driver),
-      driver_phone: valueOr(record.DriverPhone ?? record.ContactPhone, DEFAULT_DRIVER_PHONE),
       dealer_name: valueOr(record.ServiceProvider, DEFAULT_SERVICE_PROVIDER),
       service_type: display(record.InitialTCDescription),
       arrival_time: formatEasternTime(record.RepairStarted),
