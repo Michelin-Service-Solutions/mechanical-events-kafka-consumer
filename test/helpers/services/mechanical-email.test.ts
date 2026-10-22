@@ -172,7 +172,7 @@ describe('MechanicalEmailService delivery', () => {
     expect(content.arrival_time).toBe('09/28/2026 10:15:00 EST');
     expect(content.vehicle_rolling_time).toBe('04/10/2026 08:00:00 EST');
     expect(content.service_type).toBe('BRAKES-MAJOR / AIR SYSTEM');
-    expect(content.driver_phone).toBe('N/A');
+    expect(content).not.toHaveProperty('driver_phone');
     expect(content.dealer_name).toBe('Contact Michelin ONCall for information');
     expect(content.description).toBe('SCR system error');
     expect(content.repair_notes).toBe('Cleared the fault code');
@@ -308,12 +308,11 @@ describe('MechanicalEmailService delivery', () => {
     expect(setIfAbsent.mock.calls[0][0]).toBe(setIfAbsent.mock.calls[1][0]);
   });
 
-  test('uses driver phone and provider name when the case has them', async () => {
+  test('uses the provider name when the case has it', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
-    await new MechanicalEmailService(app).process({ ...rollingCase, DriverPhone: '555-0100', ServiceProvider: 'Acme Truck Repair' });
+    await new MechanicalEmailService(app).process({ ...rollingCase, ServiceProvider: 'Acme Truck Repair' });
 
     const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
-    expect(content.driver_phone).toBe('555-0100');
     expect(content.dealer_name).toBe('Acme Truck Repair');
   });
 
