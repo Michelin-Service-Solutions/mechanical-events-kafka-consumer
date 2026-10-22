@@ -4,6 +4,7 @@ import {
   ContactRecord,
   createMechanicalEmailDeliveryKey,
   extractCcEmails,
+  formatVmrs,
   getEligibleMechanicalRecipients,
   MechanicalEmailService,
   mergeMechanicalRecipients,
@@ -216,7 +217,7 @@ describe('MechanicalEmailService delivery', () => {
     });
 
     const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
-    for (const field of ['driver_name', 'service_type', 'po_number', 'unit_number', 'description', 'repair_notes', 'arrival_time', 'event_address']) {
+    for (const field of ['driver_name', 'service_type', 'po_number', 'unit_number', 'description', 'repair_notes', 'arrival_time', 'event_address', 'vmrs']) {
       expect(content[field]).toBe('N/A');
     }
   });
@@ -230,6 +231,20 @@ describe('MechanicalEmailService delivery', () => {
     const content = JSON.parse(fetchMock.mock.calls[0][1].body).content;
     expect(content.description).toBe(complaint);
     expect(content.repair_notes).toBe(correction);
+  });
+
+  test('shows VMRS as code and description', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, text: async () => 'ok' });
+    await new MechanicalEmailService(app).process({ ...rollingCase, InitialTroubleCode: '113' });
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).content.vmrs).toBe('113 — BRAKES-MAJOR / AIR SYSTEM');
+  });
+
+  test('formatVmrs shows whichever parts are present', () => {
+    expect(formatVmrs('145', 'POWER PLANT-MAJOR')).toBe('145 — POWER PLANT-MAJOR');
+    expect(formatVmrs('113', undefined)).toBe('113');
+    expect(formatVmrs(' ', 'COOLING SYSTEM')).toBe('COOLING SYSTEM');
+    expect(formatVmrs(null, '')).toBe('N/A');
   });
 
   test('sends when the vehicle rolled exactly at the activation time', async () => {
