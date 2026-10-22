@@ -11,10 +11,10 @@ describe('mechanical_case_summary template', () => {
     expect(placeholders).toEqual([
       'arrival_time', 'case_number', 'dealer_name', 'description', 'driver_name', 'driver_phone',
       'event_address', 'fleet_name', 'po_number', 'repair_notes', 'service_type', 'survey_url',
-      'unit_number', 'vehicle_rolling_time',
+      'unit_number', 'vehicle_rolling_time', 'vmrs',
     ]);
     for (const label of ['Driver Name:', 'Contact Phone:', 'Service Provider:', 'Service Type:', 'Arrival Time:',
-      'Vehicle Rolling Time:', 'ONCall Event #:', 'PO:', 'Location:', 'Unit #:', 'Description:', 'Repair Notes:']) {
+      'Vehicle Rolling Time:', 'ONCall Event #:', 'PO:', 'Location:', 'Unit #:', 'VMRS:', 'Description:', 'Repair Notes:']) {
       expect(template.html).toContain(label);
     }
     expect(template.html).not.toMatch(/Equipment Type|Tire Position|Tire Failure|<p><br><\/p>/);

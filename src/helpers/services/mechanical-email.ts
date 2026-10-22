@@ -56,6 +56,7 @@ export interface FnaCaseRecord extends MechanicalCaseRecord {
   DriverPhone?: string;
   ContactPhone?: string;
   ServiceProvider?: string;
+  InitialTroubleCode?: string;
   InitialTCDescription?: string;
   Complaint?: string;
   Correction?: string;
@@ -72,6 +73,12 @@ export const DEFAULT_DRIVER_PHONE = NOT_AVAILABLE;
 export const DEFAULT_SERVICE_PROVIDER = 'Contact Michelin ONCall for information';
 
 const display = (input: unknown): string => valueOr(input, NOT_AVAILABLE);
+
+// FNA often sends the trouble code without its description, so show whichever parts exist.
+export function formatVmrs(code?: string | null, description?: string | null): string {
+  const parts = [code, description].map((part) => part?.trim()).filter(Boolean);
+  return parts.length ? parts.join(' — ') : NOT_AVAILABLE;
+}
 
 export const MECHANICAL_EMAIL_TEMPLATE_ID = 'mechanical_case_summary';
 
@@ -217,6 +224,7 @@ export class MechanicalEmailService {
       unit_number: display(record.Unit),
       description: display(record.Complaint),
       repair_notes: display(record.Correction),
+      vmrs: formatVmrs(record.InitialTroubleCode, record.InitialTCDescription),
       survey_url: this.app.get('surveyUrl'),
     };
 
